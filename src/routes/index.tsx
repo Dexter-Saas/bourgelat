@@ -149,15 +149,15 @@ function BourgelatChat() {
 
   return (
     <div className="flex h-[100dvh] flex-col bg-background text-foreground">
-      {/* Header */}
-      <header className="z-20 flex items-center justify-between border-b border-border/60 bg-background/85 px-4 py-3 backdrop-blur-md">
+      {/* Header — deep forest green, WhatsApp-style */}
+      <header className="z-20 flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground shadow-sm">
         <div className="flex items-center gap-3">
-          <CowAvatar size={36} />
+          <CowAvatar size={40} />
           <div className="leading-tight">
-            <h1 className="text-display text-lg font-semibold tracking-tight text-foreground">
+            <h1 className="text-base font-semibold tracking-tight">
               Bourgelat
             </h1>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground text-display">
+            <p className="text-[11px] text-primary-foreground/75">
               AI Veterinary Intelligence
             </p>
           </div>
@@ -168,7 +168,7 @@ function BourgelatChat() {
       {/* Chat area */}
       <main
         ref={scrollRef}
-        className="flex-1 overflow-y-auto bg-dot-portrait"
+        className="flex-1 overflow-y-auto bg-chat-canvas"
       >
         <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
           {messages.map((m) => (

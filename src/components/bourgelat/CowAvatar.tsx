@@ -1,25 +1,35 @@
-export function CowAvatar({ size = 32 }: { size?: number }) {
+// To set a custom avatar image, drop the file at:
+//   src/assets/bourgelat-avatar.jpg (or .png / .webp)
+// It will be picked up automatically.
+const avatarModules = import.meta.glob("@/assets/bourgelat-avatar.{jpg,jpeg,png,webp}", {
+  eager: true,
+  import: "default",
+}) as Record<string, string>;
+const avatarUrl: string | undefined = Object.values(avatarModules)[0];
+
+export function CowAvatar({ size = 36 }: { size?: number }) {
   return (
     <div
-      className="flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 to-primary/5 ring-1 ring-primary/40"
-      style={{ width: size, height: size, boxShadow: "var(--glow-primary)" }}
+      className="flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 ring-1 ring-primary/25"
+      style={{ width: size, height: size }}
       aria-label="Bourgelat"
     >
-      <svg viewBox="0 0 32 32" width={size * 0.65} height={size * 0.65} fill="none">
-        {/* Stylized cow head */}
-        <path
-          d="M8 12c-2 0-3-2-2-4 1-1 3-1 4 1M24 12c2 0 3-2 2-4-1-1-3-1-4 1"
-          stroke="oklch(0.85 0.13 135)"
-          strokeWidth="1.5"
-          strokeLinecap="round"
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt="Bourgelat"
+          className="h-full w-full object-cover"
+          draggable={false}
         />
-        <ellipse cx="16" cy="17" rx="9" ry="8" fill="oklch(0.62 0.13 135 / 0.25)" stroke="oklch(0.85 0.13 135)" strokeWidth="1.5" />
-        <ellipse cx="16" cy="20" rx="5" ry="4" fill="oklch(0.20 0.018 145)" stroke="oklch(0.85 0.13 135)" strokeWidth="1.2" />
-        <circle cx="13" cy="16" r="1.1" fill="oklch(0.85 0.13 135)" />
-        <circle cx="19" cy="16" r="1.1" fill="oklch(0.85 0.13 135)" />
-        <circle cx="14" cy="20" r="0.6" fill="oklch(0.85 0.13 135)" />
-        <circle cx="18" cy="20" r="0.6" fill="oklch(0.85 0.13 135)" />
-      </svg>
+      ) : (
+        <svg viewBox="0 0 32 32" width={size * 0.7} height={size * 0.7} fill="none">
+          <ellipse cx="16" cy="17" rx="9" ry="8" fill="oklch(0.42 0.07 155 / 0.18)" stroke="oklch(0.42 0.07 155)" strokeWidth="1.4" />
+          <ellipse cx="16" cy="20" rx="5" ry="4" fill="oklch(0.42 0.07 155 / 0.30)" stroke="oklch(0.42 0.07 155)" strokeWidth="1.2" />
+          <path d="M8 12c-2 0-3-2-2-4 1-1 3-1 4 1M24 12c2 0 3-2 2-4-1-1-3-1-4 1" stroke="oklch(0.42 0.07 155)" strokeWidth="1.4" strokeLinecap="round" />
+          <circle cx="13" cy="16" r="1" fill="oklch(0.42 0.07 155)" />
+          <circle cx="19" cy="16" r="1" fill="oklch(0.42 0.07 155)" />
+        </svg>
+      )}
     </div>
   );
 }

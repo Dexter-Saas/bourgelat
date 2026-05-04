@@ -4,20 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -55,49 +41,55 @@
   --color-surface-bubble-user: var(--surface-bubble-user);
   --color-surface-bubble-bot: var(--surface-bubble-bot);
   --color-surface-report: var(--surface-report);
-  --font-display: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 :root {
-  --radius: 0.5rem;
-  /* Field-clinic at night: deep earthy black-green base */
-  --background: oklch(0.16 0.015 145);
-  --foreground: oklch(0.92 0.02 130);
-  --card: oklch(0.20 0.018 145);
-  --card-foreground: oklch(0.92 0.02 130);
-  --popover: oklch(0.18 0.018 145);
-  --popover-foreground: oklch(0.92 0.02 130);
-  /* Earthy clinical green — like the dotted portrait */
-  --primary: oklch(0.62 0.13 135);
-  --primary-foreground: oklch(0.14 0.02 145);
-  --secondary: oklch(0.26 0.025 145);
-  --secondary-foreground: oklch(0.92 0.02 130);
-  --muted: oklch(0.24 0.02 145);
-  --muted-foreground: oklch(0.65 0.025 130);
-  --accent: oklch(0.32 0.04 140);
-  --accent-foreground: oklch(0.95 0.02 130);
+  --radius: 0.75rem;
+
+  /* WhatsApp-like warm chat canvas — soft cream/beige with green hints */
+  --background: oklch(0.965 0.012 95);
+  --foreground: oklch(0.22 0.02 150);
+
+  /* Deep forest green — header & primary accents */
+  --primary: oklch(0.42 0.07 155);
+  --primary-foreground: oklch(0.98 0.01 130);
+
+  /* Surface cards — clean white */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.02 150);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.02 150);
+
+  --secondary: oklch(0.93 0.018 130);
+  --secondary-foreground: oklch(0.28 0.03 150);
+  --muted: oklch(0.94 0.012 110);
+  --muted-foreground: oklch(0.48 0.018 140);
+  --accent: oklch(0.90 0.035 140);
+  --accent-foreground: oklch(0.26 0.03 150);
+
   --destructive: oklch(0.58 0.20 27);
   --destructive-foreground: oklch(0.98 0.01 130);
-  --border: oklch(0.28 0.025 145);
-  --input: oklch(0.24 0.02 145);
-  --ring: oklch(0.62 0.13 135);
 
-  /* Triage semantic tokens */
-  --severity-mild: oklch(0.68 0.15 140);
-  --severity-moderate: oklch(0.75 0.16 75);
-  --severity-severe: oklch(0.60 0.22 27);
-  --warning: oklch(0.78 0.14 75);
-  --warning-foreground: oklch(0.18 0.02 75);
+  --border: oklch(0.88 0.012 120);
+  --input: oklch(0.95 0.01 120);
+  --ring: oklch(0.50 0.08 150);
 
-  /* Surfaces */
-  --surface-elevated: oklch(0.22 0.02 145);
-  --surface-bubble-user: oklch(0.30 0.05 140);
-  --surface-bubble-bot: oklch(0.20 0.018 145);
-  --surface-report: oklch(0.19 0.02 145);
+  /* Triage tones — earthier */
+  --severity-mild: oklch(0.55 0.13 150);
+  --severity-moderate: oklch(0.65 0.14 75);
+  --severity-severe: oklch(0.55 0.20 27);
+  --warning: oklch(0.58 0.12 75);
+  --warning-foreground: oklch(0.20 0.02 75);
 
-  /* Effects */
-  --glow-primary: 0 0 24px oklch(0.62 0.13 135 / 0.35);
-  --shadow-bubble: 0 1px 2px oklch(0 0 0 / 0.4), 0 4px 12px oklch(0 0 0 / 0.25);
+  /* Surfaces — WhatsApp-inspired */
+  --surface-elevated: oklch(1 0 0);
+  --surface-bubble-user: oklch(0.88 0.06 145);   /* sage/mint outgoing */
+  --surface-bubble-bot: oklch(1 0 0);            /* white incoming */
+  --surface-report: oklch(0.985 0.008 110);
+
+  --shadow-bubble: 0 1px 1px oklch(0 0 0 / 0.08), 0 1px 2px oklch(0 0 0 / 0.04);
+  --glow-primary: 0 4px 14px oklch(0.42 0.07 155 / 0.28);
 }
 
 @layer base {
@@ -112,35 +104,32 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    background-image:
-      radial-gradient(oklch(0.62 0.13 135 / 0.06) 1px, transparent 1px),
-      radial-gradient(oklch(0.62 0.13 135 / 0.04) 1px, transparent 1px);
-    background-size: 18px 18px, 36px 36px;
-    background-position: 0 0, 9px 9px;
-    font-feature-settings: "ss01", "cv11";
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
 @layer utilities {
-  .bg-dot-portrait {
-    background-color: var(--background);
+  /* Subtle WhatsApp-style chat backdrop — warm cream with a hint of green pattern */
+  .bg-chat-canvas {
+    background-color: oklch(0.96 0.014 100);
     background-image:
-      radial-gradient(oklch(0.62 0.13 135 / 0.18) 1.2px, transparent 1.4px);
-    background-size: 6px 6px;
+      radial-gradient(oklch(0.42 0.07 155 / 0.05) 1px, transparent 1.4px),
+      radial-gradient(oklch(0.55 0.10 145 / 0.03) 1px, transparent 1.4px);
+    background-size: 22px 22px, 44px 44px;
+    background-position: 0 0, 11px 11px;
   }
 
   .text-display {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
 
   @keyframes pulse-dot {
     0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
     30% { transform: translateY(-3px); opacity: 1; }
   }
-  .typing-dot {
-    animation: pulse-dot 1.2s infinite ease-in-out;
-  }
+  .typing-dot { animation: pulse-dot 1.2s infinite ease-in-out; }
 
   @keyframes status-pulse {
     0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
@@ -154,4 +143,3 @@
   }
   .animate-fade-up { animation: fade-up 0.3s ease-out; }
 }
-
