@@ -1,17 +1,16 @@
-// To set a custom avatar image, drop the file at src/assets/bourgelat-avatar.jpg
-// (or .png) and the import below will pick it up automatically.
-let avatarUrl: string | undefined;
-try {
-  // @ts-ignore - optional asset
-  avatarUrl = (await import("@/assets/bourgelat-avatar.jpg")).default;
-} catch {
-  avatarUrl = undefined;
-}
+// To set a custom avatar image, drop the file at:
+//   src/assets/bourgelat-avatar.jpg (or .png / .webp)
+// It will be picked up automatically.
+const avatarModules = import.meta.glob("@/assets/bourgelat-avatar.{jpg,jpeg,png,webp}", {
+  eager: true,
+  import: "default",
+}) as Record<string, string>;
+const avatarUrl: string | undefined = Object.values(avatarModules)[0];
 
 export function CowAvatar({ size = 36 }: { size?: number }) {
   return (
     <div
-      className="flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 ring-1 ring-primary/30"
+      className="flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 ring-1 ring-primary/25"
       style={{ width: size, height: size }}
       aria-label="Bourgelat"
     >
