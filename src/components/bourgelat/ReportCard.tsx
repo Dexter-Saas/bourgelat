@@ -127,13 +127,13 @@ export function ReportCard({ result }: { result: TriageResult }) {
           </div>
         </div>
 
-        {result.conditions?.length > 0 && (
-          <div className="border-b border-border/60 p-4">
-            <p className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground text-display">
-              Conditions Detected
-            </p>
+        <div className="border-b border-border/60 p-4">
+          <p className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground text-display">
+            Conditions Detected
+          </p>
+          {conditions.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
-              {result.conditions.map((c) => (
+              {conditions.map((c) => (
                 <span
                   key={c}
                   className="rounded-full bg-accent/60 px-2.5 py-1 text-xs text-accent-foreground ring-1 ring-border"
@@ -142,8 +142,10 @@ export function ReportCard({ result }: { result: TriageResult }) {
                 </span>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="text-sm italic text-muted-foreground">None detected</p>
+          )}
+        </div>
 
         <div className="space-y-3 p-4">
           <section>
