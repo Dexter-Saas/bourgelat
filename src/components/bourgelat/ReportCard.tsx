@@ -22,22 +22,31 @@ const severityStyles: Record<Severity, { bg: string; text: string; ring: string;
   },
 };
 
-function BcsDots({ score }: { score: number }) {
-  const s = Math.max(0, Math.min(5, Math.round(score)));
+function BcsDots({ score }: { score?: number | null }) {
+  const valid =
+    typeof score === "number" && Number.isFinite(score) && score > 0;
+  const s = valid ? Math.max(0, Math.min(5, Math.round(score as number))) : 0;
   return (
     <div className="flex items-center gap-1.5">
       {[1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
           className={`h-2.5 w-2.5 rounded-full transition-all ${
-            i <= s
+            valid && i <= s
               ? "bg-primary shadow-[0_0_8px_oklch(0.62_0.13_135/0.7)]"
               : "bg-border ring-1 ring-border"
           }`}
         />
       ))}
       <span className="ml-2 text-display text-sm tabular-nums text-foreground">
-        {s}<span className="text-muted-foreground">/5</span>
+        {valid ? (
+          <>
+            {s}
+            <span className="text-muted-foreground">/5</span>
+          </>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
       </span>
     </div>
   );
