@@ -22,22 +22,31 @@ const severityStyles: Record<Severity, { bg: string; text: string; ring: string;
   },
 };
 
-function BcsDots({ score }: { score: number }) {
-  const s = Math.max(0, Math.min(5, Math.round(score)));
+function BcsDots({ score }: { score?: number | null }) {
+  const valid =
+    typeof score === "number" && Number.isFinite(score) && score > 0;
+  const s = valid ? Math.max(0, Math.min(5, Math.round(score as number))) : 0;
   return (
     <div className="flex items-center gap-1.5">
       {[1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
           className={`h-2.5 w-2.5 rounded-full transition-all ${
-            i <= s
+            valid && i <= s
               ? "bg-primary shadow-[0_0_8px_oklch(0.62_0.13_135/0.7)]"
               : "bg-border ring-1 ring-border"
           }`}
         />
       ))}
       <span className="ml-2 text-display text-sm tabular-nums text-foreground">
-        {s}<span className="text-muted-foreground">/5</span>
+        {valid ? (
+          <>
+            {s}
+            <span className="text-muted-foreground">/5</span>
+          </>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
       </span>
     </div>
   );
@@ -45,8 +54,19 @@ function BcsDots({ score }: { score: number }) {
 
 export function ReportCard({ result }: { result: TriageResult }) {
   const sev = severityStyles[result.severity] ?? severityStyles.MODERATE;
+  const rawConfidence =
+    typeof result.confidence === "number" && Number.isFinite(result.confidence)
+      ? result.confidence
+      : null;
   const confidencePct =
-    result.confidence > 1 ? Math.round(result.confidence) : Math.round(result.confidence * 100);
+    rawConfidence === null
+      ? null
+      : rawConfidence > 1
+        ? Math.round(rawConfidence)
+        : Math.round(rawConfidence * 100);
+  const confidenceIsLow = confidencePct !== null && confidencePct <= 0;
+  const confidenceBarPct = confidencePct === null ? 0 : Math.max(0, Math.min(100, confidencePct));
+  const conditions = result.conditions ?? [];
 
   return (
     <div className="animate-fade-up flex flex-col gap-4">
@@ -93,21 +113,27 @@ export function ReportCard({ result }: { result: TriageResult }) {
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
                 <div
                   className="h-full rounded-full bg-primary"
-                  style={{ width: `${confidencePct}%` }}
+                  style={{ width: `${confidenceBarPct}%` }}
                 />
               </div>
-              <span className="text-display text-sm tabular-nums">{confidencePct}%</span>
+              <span className="text-display text-sm tabular-nums">
+                {confidencePct === null
+                  ? "—"
+                  : confidenceIsLow
+                    ? "Low"
+                    : `${confidencePct}%`}
+              </span>
             </div>
           </div>
         </div>
 
-        {result.conditions?.length > 0 && (
-          <div className="border-b border-border/60 p-4">
-            <p className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground text-display">
-              Conditions Detected
-            </p>
+        <div className="border-b border-border/60 p-4">
+          <p className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground text-display">
+            Conditions Detected
+          </p>
+          {conditions.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
-              {result.conditions.map((c) => (
+              {conditions.map((c) => (
                 <span
                   key={c}
                   className="rounded-full bg-accent/60 px-2.5 py-1 text-xs text-accent-foreground ring-1 ring-border"
@@ -116,8 +142,10 @@ export function ReportCard({ result }: { result: TriageResult }) {
                 </span>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="text-sm italic text-muted-foreground">None detected</p>
+          )}
+        </div>
 
         <div className="space-y-3 p-4">
           <section>
