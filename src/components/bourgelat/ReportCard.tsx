@@ -113,10 +113,16 @@ export function ReportCard({ result }: { result: TriageResult }) {
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
                 <div
                   className="h-full rounded-full bg-primary"
-                  style={{ width: `${confidencePct}%` }}
+                  style={{ width: `${confidenceBarPct}%` }}
                 />
               </div>
-              <span className="text-display text-sm tabular-nums">{confidencePct}%</span>
+              <span className="text-display text-sm tabular-nums">
+                {confidencePct === null
+                  ? "—"
+                  : confidenceIsLow
+                    ? "Low"
+                    : `${confidencePct}%`}
+              </span>
             </div>
           </div>
         </div>
