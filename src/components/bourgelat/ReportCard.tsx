@@ -54,8 +54,19 @@ function BcsDots({ score }: { score?: number | null }) {
 
 export function ReportCard({ result }: { result: TriageResult }) {
   const sev = severityStyles[result.severity] ?? severityStyles.MODERATE;
+  const rawConfidence =
+    typeof result.confidence === "number" && Number.isFinite(result.confidence)
+      ? result.confidence
+      : null;
   const confidencePct =
-    result.confidence > 1 ? Math.round(result.confidence) : Math.round(result.confidence * 100);
+    rawConfidence === null
+      ? null
+      : rawConfidence > 1
+        ? Math.round(rawConfidence)
+        : Math.round(rawConfidence * 100);
+  const confidenceIsLow = confidencePct !== null && confidencePct <= 0;
+  const confidenceBarPct = confidencePct === null ? 0 : Math.max(0, Math.min(100, confidencePct));
+  const conditions = result.conditions ?? [];
 
   return (
     <div className="animate-fade-up flex flex-col gap-4">
