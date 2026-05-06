@@ -129,13 +129,16 @@ export function ReportCard({ result }: { result: TriageResult }) {
       text,
     };
     try {
-      if (typeof navigator !== "undefined" && "share" in navigator) {
-        await navigator.share(shareData);
+      const nav = typeof navigator !== "undefined" ? (navigator as Navigator) : null;
+      if (nav && typeof nav.share === "function") {
+        await nav.share(shareData);
         return;
       }
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (nav && nav.clipboard) {
+        await nav.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
     } catch {
       // user cancelled or unavailable — silently ignore
     }
