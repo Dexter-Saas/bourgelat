@@ -103,6 +103,44 @@ export function ReportCard({ result }: { result: TriageResult }) {
   const confidenceBarPct = confidencePct === null ? 0 : Math.max(0, Math.min(100, confidencePct));
   const conditions = result.conditions ?? [];
 
+  const [copied, setCopied] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+
+  const handleDownload = () => {
+    const text = formatReportText(result);
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const idPart = result.animal_id ? `-${result.animal_id}` : "";
+    a.download = `bourgelat-report${idPart}-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setDownloaded(true);
+    setTimeout(() => setDownloaded(false), 2000);
+  };
+
+  const handleShare = async () => {
+    const text = formatReportText(result);
+    const shareData = {
+      title: "Bourgelat Triage Report",
+      text,
+    };
+    try {
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        await navigator.share(shareData);
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // user cancelled or unavailable — silently ignore
+    }
+  };
+
   return (
     <div className="animate-fade-up flex flex-col gap-4">
       {result.severity === "SEVERE" && (
