@@ -236,6 +236,13 @@ function BourgelatChat() {
       const data: TriageApiResponse = await res.json();
       const result = mapApiToTriageResult(data, text || undefined);
       setMessages((m) => [...m, { id: uid(), role: "bot-report", result }]);
+      const bcs =
+        typeof result.body_condition_score === "number" && result.body_condition_score > 0
+          ? result.body_condition_score
+          : null;
+      setLastBcs(bcs);
+      setMessages((m) => [...m, { id: uid(), role: "bot-feed-prompt" }]);
+      setFeedFlow("awaiting-choice");
     } catch (err) {
       setMessages((m) => [
         ...m,
