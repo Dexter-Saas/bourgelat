@@ -1,5 +1,40 @@
-import { AlertTriangle, Activity, Stethoscope, ClipboardList, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Activity, Stethoscope, ClipboardList, ShieldAlert, Share2, Download, Check } from "lucide-react";
+import { useState } from "react";
 import type { TriageResult, Severity } from "./types";
+
+function formatReportText(result: TriageResult): string {
+  const lines = [
+    "BOURGELAT — Triage Report",
+    "═══════════════════════════════",
+    result.animal_id ? `Animal ID: ${result.animal_id}` : null,
+    `Severity: ${result.severity}`,
+    `Body Condition Score: ${
+      typeof result.body_condition_score === "number" && result.body_condition_score > 0
+        ? `${Math.round(result.body_condition_score)}/5`
+        : "—"
+    }`,
+    `Confidence: ${
+      typeof result.confidence === "number" && Number.isFinite(result.confidence)
+        ? `${Math.round(result.confidence > 1 ? result.confidence : result.confidence * 100)}%`
+        : "—"
+    }`,
+    "",
+    `Conditions Detected: ${
+      result.conditions.length ? result.conditions.join(", ") : "None detected"
+    }`,
+    "",
+    "Clinical Observations:",
+    result.clinical_observations,
+    "",
+    "Treatment Recommendation:",
+    result.treatment_recommendation,
+    "",
+    "───────────────────────────────",
+    "Decision support only. Always consult a licensed veterinarian.",
+    `Generated: ${new Date().toLocaleString()}`,
+  ];
+  return lines.filter((l) => l !== null).join("\n");
+}
 
 const severityStyles: Record<Severity, { bg: string; text: string; ring: string; label: string }> = {
   MILD: {
@@ -67,6 +102,47 @@ export function ReportCard({ result }: { result: TriageResult }) {
   const confidenceIsLow = confidencePct !== null && confidencePct <= 0;
   const confidenceBarPct = confidencePct === null ? 0 : Math.max(0, Math.min(100, confidencePct));
   const conditions = result.conditions ?? [];
+
+  const [copied, setCopied] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+
+  const handleDownload = () => {
+    const text = formatReportText(result);
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const idPart = result.animal_id ? `-${result.animal_id}` : "";
+    a.download = `bourgelat-report${idPart}-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setDownloaded(true);
+    setTimeout(() => setDownloaded(false), 2000);
+  };
+
+  const handleShare = async () => {
+    const text = formatReportText(result);
+    const shareData = {
+      title: "Bourgelat Triage Report",
+      text,
+    };
+    try {
+      const nav = typeof navigator !== "undefined" ? (navigator as Navigator) : null;
+      if (nav && typeof nav.share === "function") {
+        await nav.share(shareData);
+        return;
+      }
+      if (nav && nav.clipboard) {
+        await nav.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch {
+      // user cancelled or unavailable — silently ignore
+    }
+  };
 
   return (
     <div className="animate-fade-up flex flex-col gap-4">
@@ -174,6 +250,45 @@ export function ReportCard({ result }: { result: TriageResult }) {
           </p>
         </div>
       </article>
+
+      <div className="flex items-center gap-1.5 px-1">
+        <button
+          type="button"
+          onClick={handleShare}
+          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          aria-label="Share report"
+        >
+          {copied ? (
+            <>
+              <Check className="h-3.5 w-3.5" />
+              Copied
+            </>
+          ) : (
+            <>
+              <Share2 className="h-3.5 w-3.5" />
+              Share
+            </>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={handleDownload}
+          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          aria-label="Download report"
+        >
+          {downloaded ? (
+            <>
+              <Check className="h-3.5 w-3.5" />
+              Saved
+            </>
+          ) : (
+            <>
+              <Download className="h-3.5 w-3.5" />
+              Download
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
