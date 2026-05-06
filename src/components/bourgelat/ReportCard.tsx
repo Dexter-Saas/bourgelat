@@ -250,6 +250,45 @@ export function ReportCard({ result }: { result: TriageResult }) {
           </p>
         </div>
       </article>
+
+      <div className="flex items-center gap-1.5 px-1">
+        <button
+          type="button"
+          onClick={handleShare}
+          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          aria-label="Share report"
+        >
+          {copied ? (
+            <>
+              <Check className="h-3.5 w-3.5" />
+              Copied
+            </>
+          ) : (
+            <>
+              <Share2 className="h-3.5 w-3.5" />
+              Share
+            </>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={handleDownload}
+          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          aria-label="Download report"
+        >
+          {downloaded ? (
+            <>
+              <Check className="h-3.5 w-3.5" />
+              Saved
+            </>
+          ) : (
+            <>
+              <Download className="h-3.5 w-3.5" />
+              Download
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
