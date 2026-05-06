@@ -378,7 +378,12 @@ function BourgelatChat() {
       >
         <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
           {messages.map((m) => (
-            <ChatBubble key={m.id} msg={m} />
+            <ChatBubble
+              key={m.id}
+              msg={m}
+              onFeedChoice={handleFeedChoice}
+              feedChoiceDisabled={feedFlow !== "awaiting-choice"}
+            />
           ))}
           {analyzing && (
             <div className="flex items-start gap-2.5">
