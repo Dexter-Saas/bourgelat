@@ -197,6 +197,71 @@ function BourgelatChat() {
     e.target.value = "";
   };
 
+  const fetchFeed = async (availableFeeds: string[]) => {
+    setFeedFlow("loading");
+    setAnalyzing(true);
+    try {
+      const payload = {
+        bcs_score: lastBcs ?? 3,
+        available_feeds: availableFeeds,
+        weight: 450,
+        milk_yield: 0,
+        days_in_milk: 0,
+        breed: "default",
+        lactation_stage: "default",
+      };
+      const res = await fetch(`${API_BASE}/feed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      const data = await res.json();
+      const ration = mapApiToFeedRation(data);
+      setMessages((m) => [
+        ...m,
+        { id: uid(), role: "bot-feed", ration, bcs: lastBcs },
+      ]);
+    } catch (err) {
+      setMessages((m) => [
+        ...m,
+        {
+          id: uid(),
+          role: "bot",
+          text: `I couldn't fetch a feed recommendation. ${(err as Error).message}`,
+        },
+      ]);
+    } finally {
+      setAnalyzing(false);
+      setFeedFlow("idle");
+    }
+  };
+
+  const handleFeedChoice = (choice: "yes" | "no") => {
+    if (feedFlow !== "awaiting-choice") return;
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", text: choice === "yes" ? "Yes, please" : "No thanks" },
+    ]);
+    if (choice === "no") {
+      setFeedFlow("idle");
+      setMessages((m) => [
+        ...m,
+        {
+          id: uid(),
+          role: "bot",
+          text: "No problem. Let me know if you'd like to assess another animal.",
+        },
+      ]);
+      return;
+    }
+    setFeedFlow("awaiting-feeds");
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "bot", text: "What feeds are available to you?" },
+    ]);
+  };
+
   const handleSend = async () => {
     if (analyzing) return;
     const text = input.trim();
@@ -212,6 +277,27 @@ function BourgelatChat() {
     setInput("");
     const sentVideo = video;
     setVideo(null);
+
+    // Feed flow: user just provided their available feeds
+    if (feedFlow === "awaiting-feeds" && !sentVideo && text) {
+      const feeds = text
+        .split(/[,;\n]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (feeds.length === 0) {
+        setMessages((m) => [
+          ...m,
+          {
+            id: uid(),
+            role: "bot",
+            text: "Please list at least one feed (e.g. hay, maize silage, concentrate).",
+          },
+        ]);
+        return;
+      }
+      await fetchFeed(feeds);
+      return;
+    }
 
     if (!sentVideo) {
       // Text-only nudge
