@@ -147,6 +147,8 @@ function BourgelatChat() {
   const [video, setVideo] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [status, setStatus] = useState<"checking" | "online" | "offline">("checking");
+  const [feedFlow, setFeedFlow] = useState<"idle" | "awaiting-choice" | "awaiting-feeds" | "loading">("idle");
+  const [lastBcs, setLastBcs] = useState<number | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
