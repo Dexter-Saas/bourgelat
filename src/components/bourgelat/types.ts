@@ -34,7 +34,16 @@ export interface TriageResult {
   triage_reason?: string;
 }
 
+export interface FeedRation {
+  raw: unknown;
+  summary?: string;
+  items: { name: string; amount?: string; note?: string }[];
+  notes?: string;
+}
+
 export type ChatMessage =
   | { id: string; role: "user"; text: string; videoName?: string; videoUrl?: string }
   | { id: string; role: "bot"; text: string }
-  | { id: string; role: "bot-report"; result: TriageResult };
+  | { id: string; role: "bot-report"; result: TriageResult }
+  | { id: string; role: "bot-feed-prompt" }
+  | { id: string; role: "bot-feed"; ration: FeedRation; bcs?: number | null };
