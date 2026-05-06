@@ -53,6 +53,70 @@ function mapApiToTriageResult(
   };
 }
 
+function mapApiToFeedRation(data: unknown): FeedRation {
+  const ration: FeedRation = { raw: data, items: [] };
+  if (!data || typeof data !== "object") return ration;
+  const d = data as Record<string, unknown>;
+
+  // Common shape candidates
+  const summary =
+    (d.summary as string) ||
+    (d.recommendation as string) ||
+    (d.message as string) ||
+    (d.advice as string);
+  if (typeof summary === "string") ration.summary = summary;
+
+  const notes =
+    (d.notes as string) ||
+    (d.disclaimer as string) ||
+    (d.note as string);
+  if (typeof notes === "string") ration.notes = notes;
+
+  // Try to extract items from several possible shapes
+  const candidate =
+    (d.ration as unknown) ??
+    (d.feeds as unknown) ??
+    (d.items as unknown) ??
+    (d.recommendations as unknown) ??
+    (d.feed_plan as unknown);
+
+  if (Array.isArray(candidate)) {
+    for (const entry of candidate) {
+      if (typeof entry === "string") {
+        ration.items.push({ name: entry });
+      } else if (entry && typeof entry === "object") {
+        const e = entry as Record<string, unknown>;
+        const name =
+          (e.name as string) ||
+          (e.feed as string) ||
+          (e.ingredient as string) ||
+          (e.type as string) ||
+          "Feed";
+        const amountVal =
+          e.amount ?? e.quantity ?? e.kg ?? e.kg_per_day ?? e.daily ?? e.ration;
+        let amount: string | undefined;
+        if (typeof amountVal === "number") {
+          amount = `${amountVal} kg/day`;
+        } else if (typeof amountVal === "string") {
+          amount = amountVal;
+        }
+        const note =
+          (e.note as string) || (e.notes as string) || (e.description as string);
+        ration.items.push({ name, amount, note });
+      }
+    }
+  } else if (candidate && typeof candidate === "object") {
+    for (const [k, v] of Object.entries(candidate as Record<string, unknown>)) {
+      let amount: string | undefined;
+      if (typeof v === "number") amount = `${v} kg/day`;
+      else if (typeof v === "string") amount = v;
+      ration.items.push({ name: k, amount });
+    }
+  }
+
+  return ration;
+}
+
 export const Route = createFileRoute("/")({
   component: BourgelatChat,
   head: () => ({
