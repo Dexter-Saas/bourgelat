@@ -7,6 +7,7 @@ import { ChatBubble } from "@/components/bourgelat/ChatBubble";
 import { TypingIndicator } from "@/components/bourgelat/TypingIndicator";
 import type {
   ChatMessage,
+  FeedRation,
   Severity,
   TriageApiResponse,
   TriageResult,
@@ -52,6 +53,70 @@ function mapApiToTriageResult(
   };
 }
 
+function mapApiToFeedRation(data: unknown): FeedRation {
+  const ration: FeedRation = { raw: data, items: [] };
+  if (!data || typeof data !== "object") return ration;
+  const d = data as Record<string, unknown>;
+
+  // Common shape candidates
+  const summary =
+    (d.summary as string) ||
+    (d.recommendation as string) ||
+    (d.message as string) ||
+    (d.advice as string);
+  if (typeof summary === "string") ration.summary = summary;
+
+  const notes =
+    (d.notes as string) ||
+    (d.disclaimer as string) ||
+    (d.note as string);
+  if (typeof notes === "string") ration.notes = notes;
+
+  // Try to extract items from several possible shapes
+  const candidate =
+    (d.ration as unknown) ??
+    (d.feeds as unknown) ??
+    (d.items as unknown) ??
+    (d.recommendations as unknown) ??
+    (d.feed_plan as unknown);
+
+  if (Array.isArray(candidate)) {
+    for (const entry of candidate) {
+      if (typeof entry === "string") {
+        ration.items.push({ name: entry });
+      } else if (entry && typeof entry === "object") {
+        const e = entry as Record<string, unknown>;
+        const name =
+          (e.name as string) ||
+          (e.feed as string) ||
+          (e.ingredient as string) ||
+          (e.type as string) ||
+          "Feed";
+        const amountVal =
+          e.amount ?? e.quantity ?? e.kg ?? e.kg_per_day ?? e.daily ?? e.ration;
+        let amount: string | undefined;
+        if (typeof amountVal === "number") {
+          amount = `${amountVal} kg/day`;
+        } else if (typeof amountVal === "string") {
+          amount = amountVal;
+        }
+        const note =
+          (e.note as string) || (e.notes as string) || (e.description as string);
+        ration.items.push({ name, amount, note });
+      }
+    }
+  } else if (candidate && typeof candidate === "object") {
+    for (const [k, v] of Object.entries(candidate as Record<string, unknown>)) {
+      let amount: string | undefined;
+      if (typeof v === "number") amount = `${v} kg/day`;
+      else if (typeof v === "string") amount = v;
+      ration.items.push({ name: k, amount });
+    }
+  }
+
+  return ration;
+}
+
 export const Route = createFileRoute("/")({
   component: BourgelatChat,
   head: () => ({
@@ -82,6 +147,8 @@ function BourgelatChat() {
   const [video, setVideo] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [status, setStatus] = useState<"checking" | "online" | "offline">("checking");
+  const [feedFlow, setFeedFlow] = useState<"idle" | "awaiting-choice" | "awaiting-feeds" | "loading">("idle");
+  const [lastBcs, setLastBcs] = useState<number | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -130,6 +197,71 @@ function BourgelatChat() {
     e.target.value = "";
   };
 
+  const fetchFeed = async (availableFeeds: string[]) => {
+    setFeedFlow("loading");
+    setAnalyzing(true);
+    try {
+      const payload = {
+        bcs_score: lastBcs ?? 3,
+        available_feeds: availableFeeds,
+        weight: 450,
+        milk_yield: 0,
+        days_in_milk: 0,
+        breed: "default",
+        lactation_stage: "default",
+      };
+      const res = await fetch(`${API_BASE}/feed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      const data = await res.json();
+      const ration = mapApiToFeedRation(data);
+      setMessages((m) => [
+        ...m,
+        { id: uid(), role: "bot-feed", ration, bcs: lastBcs },
+      ]);
+    } catch (err) {
+      setMessages((m) => [
+        ...m,
+        {
+          id: uid(),
+          role: "bot",
+          text: `I couldn't fetch a feed recommendation. ${(err as Error).message}`,
+        },
+      ]);
+    } finally {
+      setAnalyzing(false);
+      setFeedFlow("idle");
+    }
+  };
+
+  const handleFeedChoice = (choice: "yes" | "no") => {
+    if (feedFlow !== "awaiting-choice") return;
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "user", text: choice === "yes" ? "Yes, please" : "No thanks" },
+    ]);
+    if (choice === "no") {
+      setFeedFlow("idle");
+      setMessages((m) => [
+        ...m,
+        {
+          id: uid(),
+          role: "bot",
+          text: "No problem. Let me know if you'd like to assess another animal.",
+        },
+      ]);
+      return;
+    }
+    setFeedFlow("awaiting-feeds");
+    setMessages((m) => [
+      ...m,
+      { id: uid(), role: "bot", text: "What feeds are available to you?" },
+    ]);
+  };
+
   const handleSend = async () => {
     if (analyzing) return;
     const text = input.trim();
@@ -145,6 +277,27 @@ function BourgelatChat() {
     setInput("");
     const sentVideo = video;
     setVideo(null);
+
+    // Feed flow: user just provided their available feeds
+    if (feedFlow === "awaiting-feeds" && !sentVideo && text) {
+      const feeds = text
+        .split(/[,;\n]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (feeds.length === 0) {
+        setMessages((m) => [
+          ...m,
+          {
+            id: uid(),
+            role: "bot",
+            text: "Please list at least one feed (e.g. hay, maize silage, concentrate).",
+          },
+        ]);
+        return;
+      }
+      await fetchFeed(feeds);
+      return;
+    }
 
     if (!sentVideo) {
       // Text-only nudge
@@ -169,6 +322,13 @@ function BourgelatChat() {
       const data: TriageApiResponse = await res.json();
       const result = mapApiToTriageResult(data, text || undefined);
       setMessages((m) => [...m, { id: uid(), role: "bot-report", result }]);
+      const bcs =
+        typeof result.body_condition_score === "number" && result.body_condition_score > 0
+          ? result.body_condition_score
+          : null;
+      setLastBcs(bcs);
+      setMessages((m) => [...m, { id: uid(), role: "bot-feed-prompt" }]);
+      setFeedFlow("awaiting-choice");
     } catch (err) {
       setMessages((m) => [
         ...m,
@@ -218,7 +378,12 @@ function BourgelatChat() {
       >
         <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">
           {messages.map((m) => (
-            <ChatBubble key={m.id} msg={m} />
+            <ChatBubble
+              key={m.id}
+              msg={m}
+              onFeedChoice={handleFeedChoice}
+              feedChoiceDisabled={feedFlow !== "awaiting-choice"}
+            />
           ))}
           {analyzing && (
             <div className="flex items-start gap-2.5">
@@ -273,7 +438,13 @@ function BourgelatChat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
               disabled={analyzing}
-              placeholder={video ? "Animal ID (e.g. 4271)…" : "Describe symptoms or attach a video…"}
+              placeholder={
+                feedFlow === "awaiting-feeds"
+                  ? "List your available feeds (e.g. hay, maize silage, concentrate)…"
+                  : video
+                    ? "Animal ID (e.g. 4271)…"
+                    : "Describe symptoms or attach a video…"
+              }
               className="max-h-[140px] flex-1 resize-none bg-transparent px-1 py-2.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-60"
             />
             <button
