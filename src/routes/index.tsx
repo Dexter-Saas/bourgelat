@@ -5,7 +5,52 @@ import { CowAvatar } from "@/components/bourgelat/CowAvatar";
 import { StatusDot } from "@/components/bourgelat/StatusDot";
 import { ChatBubble } from "@/components/bourgelat/ChatBubble";
 import { TypingIndicator } from "@/components/bourgelat/TypingIndicator";
-import type { ChatMessage, TriageResult } from "@/components/bourgelat/types";
+import type {
+  ChatMessage,
+  Severity,
+  TriageApiResponse,
+  TriageResult,
+} from "@/components/bourgelat/types";
+
+function mapApiToTriageResult(
+  data: TriageApiResponse,
+  animalId?: string,
+): TriageResult {
+  const analysis = data.analysis ?? {};
+  const triage = data.triage ?? {};
+
+  const levelRaw = (triage.level ?? "").toString().toUpperCase();
+  let severity: Severity = "MODERATE";
+  if (levelRaw.includes("SEVERE") || levelRaw.includes("CRITICAL") || levelRaw.includes("HIGH")) {
+    severity = "SEVERE";
+  } else if (levelRaw.includes("MILD") || levelRaw.includes("LOW")) {
+    severity = "MILD";
+  } else if (levelRaw.includes("MODERATE") || levelRaw.includes("MED")) {
+    severity = "MODERATE";
+  } else if (typeof analysis.severity_score === "number") {
+    if (analysis.severity_score >= 0.66) severity = "SEVERE";
+    else if (analysis.severity_score < 0.34) severity = "MILD";
+  }
+
+  const observations = analysis.observations?.trim() || "No observations provided.";
+  const treatment =
+    data.treatment_context?.trim() ||
+    triage.reason?.trim() ||
+    "No treatment guidance provided.";
+
+  return {
+    severity,
+    body_condition_score:
+      typeof analysis.bcs_score === "number" ? analysis.bcs_score : null,
+    confidence: typeof analysis.confidence === "number" ? analysis.confidence : null,
+    conditions: Array.isArray(analysis.conditions) ? analysis.conditions : [],
+    clinical_observations: observations,
+    treatment_recommendation: treatment,
+    animal_id: animalId,
+    triage_action: triage.action,
+    triage_reason: triage.reason,
+  };
+}
 
 export const Route = createFileRoute("/")({
   component: BourgelatChat,
@@ -121,8 +166,9 @@ function BourgelatChat() {
       fd.append("animal_id", text || "unknown");
       const res = await fetch(`${API_BASE}/analyze`, { method: "POST", body: fd });
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const data: TriageResult = await res.json();
-      setMessages((m) => [...m, { id: uid(), role: "bot-report", result: data }]);
+      const data: TriageApiResponse = await res.json();
+      const result = mapApiToTriageResult(data, text || undefined);
+      setMessages((m) => [...m, { id: uid(), role: "bot-report", result }]);
     } catch (err) {
       setMessages((m) => [
         ...m,

@@ -1,13 +1,37 @@
 export type Severity = "MILD" | "MODERATE" | "SEVERE";
 
+export interface TriageAnalysis {
+  bcs_score?: number | null;
+  conditions?: string[];
+  severity_score?: number | null;
+  confidence?: number | null;
+  observations?: string;
+  disclaimer?: string;
+}
+
+export interface TriageInfo {
+  level?: string;
+  action?: string;
+  reason?: string;
+}
+
+export interface TriageApiResponse {
+  analysis?: TriageAnalysis;
+  triage?: TriageInfo;
+  treatment_context?: string;
+  disclaimer?: string;
+}
+
 export interface TriageResult {
   severity: Severity;
-  body_condition_score: number; // 1-5
-  confidence: number; // 0-1 or 0-100
+  body_condition_score?: number | null;
+  confidence?: number | null;
   conditions: string[];
   clinical_observations: string;
   treatment_recommendation: string;
   animal_id?: string;
+  triage_action?: string;
+  triage_reason?: string;
 }
 
 export type ChatMessage =
