@@ -7,6 +7,7 @@ import { ChatBubble } from "@/components/bourgelat/ChatBubble";
 import { TypingIndicator } from "@/components/bourgelat/TypingIndicator";
 import type {
   ChatMessage,
+  FeedRation,
   Severity,
   TriageApiResponse,
   TriageResult,
