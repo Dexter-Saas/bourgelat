@@ -1,5 +1,40 @@
-import { AlertTriangle, Activity, Stethoscope, ClipboardList, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Activity, Stethoscope, ClipboardList, ShieldAlert, Share2, Download, Check } from "lucide-react";
+import { useState } from "react";
 import type { TriageResult, Severity } from "./types";
+
+function formatReportText(result: TriageResult): string {
+  const lines = [
+    "BOURGELAT — Triage Report",
+    "═══════════════════════════════",
+    result.animal_id ? `Animal ID: ${result.animal_id}` : null,
+    `Severity: ${result.severity}`,
+    `Body Condition Score: ${
+      typeof result.body_condition_score === "number" && result.body_condition_score > 0
+        ? `${Math.round(result.body_condition_score)}/5`
+        : "—"
+    }`,
+    `Confidence: ${
+      typeof result.confidence === "number" && Number.isFinite(result.confidence)
+        ? `${Math.round(result.confidence > 1 ? result.confidence : result.confidence * 100)}%`
+        : "—"
+    }`,
+    "",
+    `Conditions Detected: ${
+      result.conditions.length ? result.conditions.join(", ") : "None detected"
+    }`,
+    "",
+    "Clinical Observations:",
+    result.clinical_observations,
+    "",
+    "Treatment Recommendation:",
+    result.treatment_recommendation,
+    "",
+    "───────────────────────────────",
+    "Decision support only. Always consult a licensed veterinarian.",
+    `Generated: ${new Date().toLocaleString()}`,
+  ];
+  return lines.filter((l) => l !== null).join("\n");
+}
 
 const severityStyles: Record<Severity, { bg: string; text: string; ring: string; label: string }> = {
   MILD: {
