@@ -58,22 +58,26 @@ function mapApiToFeedRation(data: unknown): FeedRation {
   if (!data || typeof data !== "object") return ration;
   const d = data as Record<string, unknown>;
 
-  // Common shape candidates
+  if (typeof d.estimated_weight_kg === "number") ration.estimatedWeightKg = d.estimated_weight_kg;
+  if (typeof d.inferred_production_stage === "string") ration.productionStage = d.inferred_production_stage;
+  if (typeof d.dry_matter_required_kg === "number") ration.dryMatterRequiredKg = d.dry_matter_required_kg;
+  if (typeof d.total_daily_cost === "number") ration.totalDailyCost = d.total_daily_cost;
+  if (typeof d.disclaimer === "string") ration.disclaimer = d.disclaimer;
+
   const summary =
-    (d.summary as string) ||
-    (d.recommendation as string) ||
-    (d.message as string) ||
-    (d.advice as string);
+    (d.summary as string) || (d.recommendation as string) || (d.message as string) || (d.advice as string);
   if (typeof summary === "string") ration.summary = summary;
 
-  const notes =
-    (d.notes as string) ||
-    (d.disclaimer as string) ||
-    (d.note as string);
-  if (typeof notes === "string") ration.notes = notes;
+  const notesVal = d.notes ?? d.note;
+  if (Array.isArray(notesVal)) {
+    const joined = notesVal.filter((n) => typeof n === "string").join("\n");
+    if (joined) ration.notes = joined;
+  } else if (typeof notesVal === "string") {
+    ration.notes = notesVal;
+  }
 
-  // Try to extract items from several possible shapes
   const candidate =
+    (d.recommended_feeds as unknown) ??
     (d.ration as unknown) ??
     (d.feeds as unknown) ??
     (d.items as unknown) ??
@@ -87,22 +91,24 @@ function mapApiToFeedRation(data: unknown): FeedRation {
       } else if (entry && typeof entry === "object") {
         const e = entry as Record<string, unknown>;
         const name =
-          (e.name as string) ||
           (e.feed as string) ||
+          (e.name as string) ||
           (e.ingredient as string) ||
           (e.type as string) ||
           "Feed";
         const amountVal =
-          e.amount ?? e.quantity ?? e.kg ?? e.kg_per_day ?? e.daily ?? e.ration;
+          e.amount_kg_per_day ?? e.amount ?? e.quantity ?? e.kg ?? e.kg_per_day ?? e.daily ?? e.ration;
         let amount: string | undefined;
-        if (typeof amountVal === "number") {
-          amount = `${amountVal} kg/day`;
-        } else if (typeof amountVal === "string") {
-          amount = amountVal;
-        }
-        const note =
-          (e.note as string) || (e.notes as string) || (e.description as string);
-        ration.items.push({ name, amount, note });
+        if (typeof amountVal === "number") amount = `${amountVal.toFixed(2)} kg/day`;
+        else if (typeof amountVal === "string") amount = amountVal;
+
+        const costVal = e.estimated_cost ?? e.cost;
+        let cost: string | undefined;
+        if (typeof costVal === "number") cost = costVal.toFixed(2);
+        else if (typeof costVal === "string") cost = costVal;
+
+        const note = (e.note as string) || (e.notes as string) || (e.description as string);
+        ration.items.push({ name, amount, cost, note });
       }
     }
   } else if (candidate && typeof candidate === "object") {
