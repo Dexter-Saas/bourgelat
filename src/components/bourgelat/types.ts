@@ -34,11 +34,23 @@ export interface TriageResult {
   triage_reason?: string;
 }
 
+export interface FeedRationItem {
+  name: string;
+  amount?: string;
+  cost?: string;
+  note?: string;
+}
+
 export interface FeedRation {
   raw: unknown;
   summary?: string;
-  items: { name: string; amount?: string; note?: string }[];
+  items: FeedRationItem[];
   notes?: string;
+  disclaimer?: string;
+  estimatedWeightKg?: number | null;
+  productionStage?: string;
+  dryMatterRequiredKg?: number | null;
+  totalDailyCost?: number | null;
 }
 
 export type ChatMessage =
