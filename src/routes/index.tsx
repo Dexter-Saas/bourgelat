@@ -231,6 +231,7 @@ function BourgelatChat() {
   const [status, setStatus] = useState<"checking" | "online" | "offline">("checking");
   const [feedFlow, setFeedFlow] = useState<"idle" | "awaiting-choice" | "awaiting-feeds" | "loading">("idle");
   const [lastBcs, setLastBcs] = useState<number | null>(null);
+  const [mode, setMode] = useState<Mode>("single");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
