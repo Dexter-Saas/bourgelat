@@ -2,6 +2,7 @@ import { Film } from "lucide-react";
 import { CowAvatar } from "./CowAvatar";
 import { ReportCard } from "./ReportCard";
 import { FeedCard } from "./FeedCard";
+import { HerdCard } from "./HerdCard";
 import type { ChatMessage } from "./types";
 
 export function ChatBubble({
