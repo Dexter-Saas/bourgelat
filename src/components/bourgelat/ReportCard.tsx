@@ -1,6 +1,7 @@
 import { AlertTriangle, Activity, Stethoscope, ClipboardList, ShieldAlert, Share2, Download, Check } from "lucide-react";
 import { useState } from "react";
 import type { TriageResult, Severity } from "./types";
+import { FeverPill } from "./FeverPill";
 
 function formatReportText(result: TriageResult): string {
   const lines = [
