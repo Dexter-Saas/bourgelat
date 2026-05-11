@@ -461,6 +461,40 @@ function BourgelatChat() {
         <StatusDot status={status} />
       </header>
 
+      {/* Mode selector */}
+      <div className="z-10 flex items-center justify-center border-b border-border/60 bg-background/80 px-4 py-2 backdrop-blur-md">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface-elevated)] px-3 py-1.5 text-xs font-medium text-foreground ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50"
+            disabled={analyzing}
+          >
+            {mode === "single" ? (
+              <User className="h-3.5 w-3.5 text-primary" />
+            ) : (
+              <Users className="h-3.5 w-3.5 text-primary" />
+            )}
+            <span>{mode === "single" ? "Single Animal" : "Herd Scan"}</span>
+            <ChevronDown className="h-3 w-3 opacity-60" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" className="min-w-[180px]">
+            <DropdownMenuItem onClick={() => setMode("single")}>
+              <User className="h-4 w-4" />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">Single Animal</span>
+                <span className="text-[11px] text-muted-foreground">One cow at a time</span>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setMode("herd")}>
+              <Users className="h-4 w-4" />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">Herd Scan</span>
+                <span className="text-[11px] text-muted-foreground">Walkthrough assessment</span>
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       {/* Chat area */}
       <main
         ref={scrollRef}
