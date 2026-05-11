@@ -397,21 +397,28 @@ function BourgelatChat() {
 
     setAnalyzing(true);
     try {
+      const isHerd = mode === "herd";
       const fd = new FormData();
       fd.append("video", sentVideo);
-      fd.append("animal_id", text || "unknown");
+      fd.append("animal_id", isHerd ? "herd" : (text || "unknown"));
       const res = await fetch(`${API_BASE}/analyze`, { method: "POST", body: fd });
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const data: TriageApiResponse = await res.json();
-      const result = mapApiToTriageResult(data, text || undefined);
-      setMessages((m) => [...m, { id: uid(), role: "bot-report", result }]);
-      const bcs =
-        typeof result.body_condition_score === "number" && result.body_condition_score > 0
-          ? result.body_condition_score
-          : null;
-      setLastBcs(bcs);
-      setMessages((m) => [...m, { id: uid(), role: "bot-feed-prompt" }]);
-      setFeedFlow("awaiting-choice");
+      const data = await res.json();
+
+      if (isHerd) {
+        const herd = mapApiToHerdResult(data);
+        setMessages((m) => [...m, { id: uid(), role: "bot-herd", result: herd }]);
+      } else {
+        const result = mapApiToTriageResult(data as TriageApiResponse, text || undefined);
+        setMessages((m) => [...m, { id: uid(), role: "bot-report", result }]);
+        const bcs =
+          typeof result.body_condition_score === "number" && result.body_condition_score > 0
+            ? result.body_condition_score
+            : null;
+        setLastBcs(bcs);
+        setMessages((m) => [...m, { id: uid(), role: "bot-feed-prompt" }]);
+        setFeedFlow("awaiting-choice");
+      }
     } catch (err) {
       setMessages((m) => [
         ...m,
