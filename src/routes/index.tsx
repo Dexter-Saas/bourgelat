@@ -565,9 +565,11 @@ function BourgelatChat() {
               placeholder={
                 feedFlow === "awaiting-feeds"
                   ? "List your available feeds (e.g. hay, maize silage, concentrate)…"
-                  : video
-                    ? "Animal ID (e.g. 4271)…"
-                    : "Describe symptoms or attach a video…"
+                  : mode === "herd"
+                    ? "Describe your herd or attach a walkthrough video…"
+                    : video
+                      ? "Animal ID (e.g. 4271)…"
+                      : "Describe symptoms or attach a video…"
               }
               className="max-h-[140px] flex-1 resize-none bg-transparent px-1 py-2.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-60"
             />
