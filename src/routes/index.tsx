@@ -1,17 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Paperclip, Send, X } from "lucide-react";
+import { Paperclip, Send, X, ChevronDown, User, Users } from "lucide-react";
 import { CowAvatar } from "@/components/bourgelat/CowAvatar";
 import { StatusDot } from "@/components/bourgelat/StatusDot";
 import { ChatBubble } from "@/components/bourgelat/ChatBubble";
 import { TypingIndicator } from "@/components/bourgelat/TypingIndicator";
+import { normalizeFever } from "@/components/bourgelat/FeverPill";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import type {
   ChatMessage,
   FeedRation,
+  HerdResult,
   Severity,
   TriageApiResponse,
   TriageResult,
 } from "@/components/bourgelat/types";
+
+type Mode = "single" | "herd";
 
 function mapApiToTriageResult(
   data: TriageApiResponse,
