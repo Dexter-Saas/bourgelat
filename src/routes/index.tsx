@@ -1,17 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Paperclip, Send, X } from "lucide-react";
+import { Paperclip, Send, X, ChevronDown, User, Users } from "lucide-react";
 import { CowAvatar } from "@/components/bourgelat/CowAvatar";
 import { StatusDot } from "@/components/bourgelat/StatusDot";
 import { ChatBubble } from "@/components/bourgelat/ChatBubble";
 import { TypingIndicator } from "@/components/bourgelat/TypingIndicator";
+import { normalizeFever } from "@/components/bourgelat/FeverPill";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import type {
   ChatMessage,
   FeedRation,
+  HerdResult,
   Severity,
   TriageApiResponse,
   TriageResult,
 } from "@/components/bourgelat/types";
+
+type Mode = "single" | "herd";
 
 function mapApiToTriageResult(
   data: TriageApiResponse,
@@ -39,6 +49,13 @@ function mapApiToTriageResult(
     triage.reason?.trim() ||
     "No treatment guidance provided.";
 
+  const fever = normalizeFever(analysis.fever_likelihood ?? data.fever_likelihood);
+  const feverSigns = Array.isArray(analysis.fever_signs)
+    ? analysis.fever_signs
+    : Array.isArray(data.fever_signs)
+      ? data.fever_signs
+      : [];
+
   return {
     severity,
     body_condition_score:
@@ -50,7 +67,66 @@ function mapApiToTriageResult(
     animal_id: animalId,
     triage_action: triage.action,
     triage_reason: triage.reason,
+    fever_likelihood: fever,
+    fever_signs: feverSigns,
   };
+}
+
+function mapApiToHerdResult(data: unknown): HerdResult {
+  const result: HerdResult = {
+    health_summary: "",
+    flagged: [],
+    raw: data,
+    fever_likelihood: null,
+  };
+  if (!data || typeof data !== "object") return result;
+  const d = data as Record<string, unknown>;
+  const analysis = (d.analysis && typeof d.analysis === "object" ? d.analysis : d) as Record<string, unknown>;
+
+  const size = analysis.herd_size ?? analysis.estimated_herd_size ?? d.herd_size ?? d.estimated_herd_size;
+  if (typeof size === "number") result.herd_size = size;
+
+  const avg = analysis.average_bcs ?? analysis.avg_bcs ?? analysis.bcs_score ?? d.average_bcs;
+  if (typeof avg === "number") result.average_bcs = avg;
+
+  const summary =
+    analysis.health_summary ?? analysis.summary ?? analysis.observations ?? d.health_summary ?? d.summary;
+  if (typeof summary === "string") result.health_summary = summary;
+
+  result.fever_likelihood = normalizeFever(
+    analysis.fever_likelihood ?? d.fever_likelihood,
+  );
+
+  const flaggedRaw = analysis.flagged_animals ?? analysis.flagged ?? d.flagged_animals ?? d.flagged;
+  if (Array.isArray(flaggedRaw)) {
+    for (const item of flaggedRaw) {
+      if (typeof item === "string") {
+        result.flagged.push({ concerns: [item] });
+      } else if (item && typeof item === "object") {
+        const e = item as Record<string, unknown>;
+        const id =
+          (e.id as string) ||
+          (e.animal_id as string) ||
+          (e.tag as string) ||
+          undefined;
+        const concernsVal = e.concerns ?? e.conditions ?? e.issues;
+        const concerns = Array.isArray(concernsVal)
+          ? concernsVal.filter((c): c is string => typeof c === "string")
+          : typeof concernsVal === "string"
+            ? [concernsVal]
+            : [];
+        const severity =
+          typeof e.severity === "string"
+            ? e.severity
+            : typeof e.level === "string"
+              ? e.level
+              : undefined;
+        result.flagged.push({ id, concerns, severity });
+      }
+    }
+  }
+
+  return result;
 }
 
 function mapApiToFeedRation(data: unknown): FeedRation {
@@ -155,6 +231,7 @@ function BourgelatChat() {
   const [status, setStatus] = useState<"checking" | "online" | "offline">("checking");
   const [feedFlow, setFeedFlow] = useState<"idle" | "awaiting-choice" | "awaiting-feeds" | "loading">("idle");
   const [lastBcs, setLastBcs] = useState<number | null>(null);
+  const [mode, setMode] = useState<Mode>("single");
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -320,21 +397,28 @@ function BourgelatChat() {
 
     setAnalyzing(true);
     try {
+      const isHerd = mode === "herd";
       const fd = new FormData();
       fd.append("video", sentVideo);
-      fd.append("animal_id", text || "unknown");
+      fd.append("animal_id", isHerd ? "herd" : (text || "unknown"));
       const res = await fetch(`${API_BASE}/analyze`, { method: "POST", body: fd });
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const data: TriageApiResponse = await res.json();
-      const result = mapApiToTriageResult(data, text || undefined);
-      setMessages((m) => [...m, { id: uid(), role: "bot-report", result }]);
-      const bcs =
-        typeof result.body_condition_score === "number" && result.body_condition_score > 0
-          ? result.body_condition_score
-          : null;
-      setLastBcs(bcs);
-      setMessages((m) => [...m, { id: uid(), role: "bot-feed-prompt" }]);
-      setFeedFlow("awaiting-choice");
+      const data = await res.json();
+
+      if (isHerd) {
+        const herd = mapApiToHerdResult(data);
+        setMessages((m) => [...m, { id: uid(), role: "bot-herd", result: herd }]);
+      } else {
+        const result = mapApiToTriageResult(data as TriageApiResponse, text || undefined);
+        setMessages((m) => [...m, { id: uid(), role: "bot-report", result }]);
+        const bcs =
+          typeof result.body_condition_score === "number" && result.body_condition_score > 0
+            ? result.body_condition_score
+            : null;
+        setLastBcs(bcs);
+        setMessages((m) => [...m, { id: uid(), role: "bot-feed-prompt" }]);
+        setFeedFlow("awaiting-choice");
+      }
     } catch (err) {
       setMessages((m) => [
         ...m,
@@ -376,6 +460,40 @@ function BourgelatChat() {
         </div>
         <StatusDot status={status} />
       </header>
+
+      {/* Mode selector */}
+      <div className="z-10 flex items-center justify-center border-b border-border/60 bg-background/80 px-4 py-2 backdrop-blur-md">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface-elevated)] px-3 py-1.5 text-xs font-medium text-foreground ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50"
+            disabled={analyzing}
+          >
+            {mode === "single" ? (
+              <User className="h-3.5 w-3.5 text-primary" />
+            ) : (
+              <Users className="h-3.5 w-3.5 text-primary" />
+            )}
+            <span>{mode === "single" ? "Single Animal" : "Herd Scan"}</span>
+            <ChevronDown className="h-3 w-3 opacity-60" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" className="min-w-[180px]">
+            <DropdownMenuItem onClick={() => setMode("single")}>
+              <User className="h-4 w-4" />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">Single Animal</span>
+                <span className="text-[11px] text-muted-foreground">One cow at a time</span>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setMode("herd")}>
+              <Users className="h-4 w-4" />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">Herd Scan</span>
+                <span className="text-[11px] text-muted-foreground">Walkthrough assessment</span>
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       {/* Chat area */}
       <main
@@ -447,9 +565,11 @@ function BourgelatChat() {
               placeholder={
                 feedFlow === "awaiting-feeds"
                   ? "List your available feeds (e.g. hay, maize silage, concentrate)…"
-                  : video
-                    ? "Animal ID (e.g. 4271)…"
-                    : "Describe symptoms or attach a video…"
+                  : mode === "herd"
+                    ? "Describe your herd or attach a walkthrough video…"
+                    : video
+                      ? "Animal ID (e.g. 4271)…"
+                      : "Describe symptoms or attach a video…"
               }
               className="max-h-[140px] flex-1 resize-none bg-transparent px-1 py-2.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-60"
             />

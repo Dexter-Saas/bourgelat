@@ -2,6 +2,7 @@ import { Film } from "lucide-react";
 import { CowAvatar } from "./CowAvatar";
 import { ReportCard } from "./ReportCard";
 import { FeedCard } from "./FeedCard";
+import { HerdCard } from "./HerdCard";
 import type { ChatMessage } from "./types";
 
 export function ChatBubble({
@@ -39,6 +40,7 @@ export function ChatBubble({
           </div>
         )}
         {msg.role === "bot-report" && <ReportCard result={msg.result} />}
+        {msg.role === "bot-herd" && <HerdCard result={msg.result} />}
         {msg.role === "bot-feed-prompt" && (
           <div className="flex flex-col gap-2">
             <div className="rounded-2xl rounded-tl-md bg-[var(--surface-bubble-bot)] px-3.5 py-2 text-[15px] leading-relaxed text-foreground shadow-[var(--shadow-bubble)]">

@@ -1,6 +1,7 @@
 import { AlertTriangle, Activity, Stethoscope, ClipboardList, ShieldAlert, Share2, Download, Check } from "lucide-react";
 import { useState } from "react";
 import type { TriageResult, Severity } from "./types";
+import { FeverPill } from "./FeverPill";
 
 function formatReportText(result: TriageResult): string {
   const lines = [
@@ -167,12 +168,28 @@ export function ReportCard({ result }: { result: TriageResult }) {
               </span>
             )}
           </div>
-          <span
-            className={`rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wider ring-1 text-display ${sev.bg} ${sev.text} ${sev.ring}`}
-          >
-            {result.severity}
-          </span>
+          <div className="flex items-center gap-2">
+            {result.fever_likelihood && <FeverPill level={result.fever_likelihood} />}
+            <span
+              className={`rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wider ring-1 text-display ${sev.bg} ${sev.text} ${sev.ring}`}
+            >
+              {result.severity}
+            </span>
+          </div>
         </div>
+
+        {result.fever_likelihood && result.fever_likelihood !== "low" && result.fever_signs && result.fever_signs.length > 0 && (
+          <div className="border-b border-border/60 px-4 py-2.5">
+            <p className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground text-display">
+              Fever Signs
+            </p>
+            <ul className="list-disc pl-4 text-xs text-foreground/85 space-y-0.5">
+              {result.fever_signs.map((s, i) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3 border-b border-border/60 p-4">
           <div className="space-y-1.5">
