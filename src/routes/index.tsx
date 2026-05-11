@@ -49,6 +49,13 @@ function mapApiToTriageResult(
     triage.reason?.trim() ||
     "No treatment guidance provided.";
 
+  const fever = normalizeFever(analysis.fever_likelihood ?? data.fever_likelihood);
+  const feverSigns = Array.isArray(analysis.fever_signs)
+    ? analysis.fever_signs
+    : Array.isArray(data.fever_signs)
+      ? data.fever_signs
+      : [];
+
   return {
     severity,
     body_condition_score:
@@ -60,7 +67,66 @@ function mapApiToTriageResult(
     animal_id: animalId,
     triage_action: triage.action,
     triage_reason: triage.reason,
+    fever_likelihood: fever,
+    fever_signs: feverSigns,
   };
+}
+
+function mapApiToHerdResult(data: unknown): HerdResult {
+  const result: HerdResult = {
+    health_summary: "",
+    flagged: [],
+    raw: data,
+    fever_likelihood: null,
+  };
+  if (!data || typeof data !== "object") return result;
+  const d = data as Record<string, unknown>;
+  const analysis = (d.analysis && typeof d.analysis === "object" ? d.analysis : d) as Record<string, unknown>;
+
+  const size = analysis.herd_size ?? analysis.estimated_herd_size ?? d.herd_size ?? d.estimated_herd_size;
+  if (typeof size === "number") result.herd_size = size;
+
+  const avg = analysis.average_bcs ?? analysis.avg_bcs ?? analysis.bcs_score ?? d.average_bcs;
+  if (typeof avg === "number") result.average_bcs = avg;
+
+  const summary =
+    analysis.health_summary ?? analysis.summary ?? analysis.observations ?? d.health_summary ?? d.summary;
+  if (typeof summary === "string") result.health_summary = summary;
+
+  result.fever_likelihood = normalizeFever(
+    analysis.fever_likelihood ?? d.fever_likelihood,
+  );
+
+  const flaggedRaw = analysis.flagged_animals ?? analysis.flagged ?? d.flagged_animals ?? d.flagged;
+  if (Array.isArray(flaggedRaw)) {
+    for (const item of flaggedRaw) {
+      if (typeof item === "string") {
+        result.flagged.push({ concerns: [item] });
+      } else if (item && typeof item === "object") {
+        const e = item as Record<string, unknown>;
+        const id =
+          (e.id as string) ||
+          (e.animal_id as string) ||
+          (e.tag as string) ||
+          undefined;
+        const concernsVal = e.concerns ?? e.conditions ?? e.issues;
+        const concerns = Array.isArray(concernsVal)
+          ? concernsVal.filter((c): c is string => typeof c === "string")
+          : typeof concernsVal === "string"
+            ? [concernsVal]
+            : [];
+        const severity =
+          typeof e.severity === "string"
+            ? e.severity
+            : typeof e.level === "string"
+              ? e.level
+              : undefined;
+        result.flagged.push({ id, concerns, severity });
+      }
+    }
+  }
+
+  return result;
 }
 
 function mapApiToFeedRation(data: unknown): FeedRation {
