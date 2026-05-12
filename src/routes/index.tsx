@@ -522,7 +522,7 @@ function BourgelatChat() {
       </main>
 
       {/* Input bar */}
-      <footer className="z-20 border-t border-border/60 bg-background/90 backdrop-blur-md">
+      <footer className="glass z-20">
         <div className="mx-auto max-w-2xl px-3 py-3">
           {video && (
             <div className="mb-2 flex items-center justify-between gap-2 rounded-lg bg-[var(--surface-elevated)] px-3 py-2 ring-1 ring-border">
