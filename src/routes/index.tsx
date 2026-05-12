@@ -542,7 +542,7 @@ function BourgelatChat() {
               </button>
             </div>
           )}
-          <div className="flex items-end gap-2 rounded-2xl bg-[var(--surface-elevated)] p-1.5 ring-1 ring-border focus-within:ring-primary/60 transition-all">
+          <div className="flex items-end gap-2 rounded-2xl bg-white/70 p-1.5 ring-1 ring-border/70 backdrop-blur-md focus-within:ring-primary/60 focus-within:shadow-[0_8px_24px_-8px_oklch(0.42_0.07_155/0.3)] transition-all">
             <button
               onClick={handleAttach}
               disabled={analyzing}
