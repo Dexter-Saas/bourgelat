@@ -580,8 +580,7 @@ function BourgelatChat() {
               onClick={handleSend}
               disabled={analyzing || (!input.trim() && !video)}
               aria-label="Send"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
-              style={{ boxShadow: "var(--glow-primary)" }}
+              className="glow-pulse gradient-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-primary-foreground transition-all hover:brightness-110 hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:bg-muted disabled:bg-none disabled:text-muted-foreground disabled:animate-none disabled:shadow-none"
             >
               <Send className="h-4.5 w-4.5" strokeWidth={2.5} />
             </button>
