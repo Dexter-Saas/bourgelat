@@ -446,11 +446,14 @@ function BourgelatChat() {
   return (
     <div className="flex h-[100dvh] flex-col bg-background text-foreground">
       {/* Header — deep forest green, WhatsApp-style */}
-      <header className="z-20 flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground shadow-sm">
+      <header className="glass-header z-20 flex items-center justify-between px-4 py-3 text-primary-foreground">
         <div className="flex items-center gap-3">
-          <CowAvatar size={40} />
+          <div className="relative">
+            <span className="absolute -inset-1 rounded-full bg-[oklch(0.62_0.13_145)]/40 blur-md" />
+            <CowAvatar size={40} />
+          </div>
           <div className="leading-tight">
-            <h1 className="text-base font-semibold tracking-tight">
+            <h1 className="bg-gradient-to-r from-white to-[oklch(0.92_0.05_140)] bg-clip-text text-base font-semibold tracking-tight text-transparent">
               Bourgelat
             </h1>
             <p className="text-[11px] text-primary-foreground/75">
