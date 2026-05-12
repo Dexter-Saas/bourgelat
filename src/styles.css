@@ -116,12 +116,27 @@
 
 @layer utilities {
   .bg-chat-canvas {
+    position: relative;
     background-color: oklch(0.96 0.014 100);
     background-image:
       radial-gradient(oklch(0.42 0.07 155 / 0.05) 1px, transparent 1.4px),
       radial-gradient(oklch(0.55 0.10 145 / 0.03) 1px, transparent 1.4px);
     background-size: 22px 22px, 44px 44px;
     background-position: 0 0, 11px 11px;
+    isolation: isolate;
+  }
+  .bg-chat-canvas::before {
+    content: "";
+    position: absolute;
+    inset: -10%;
+    background:
+      radial-gradient(40% 35% at 15% 20%, oklch(0.62 0.13 145 / 0.18), transparent 70%),
+      radial-gradient(45% 40% at 85% 10%, oklch(0.55 0.10 95 / 0.14), transparent 70%),
+      radial-gradient(55% 45% at 50% 95%, oklch(0.42 0.07 155 / 0.16), transparent 70%);
+    filter: blur(40px);
+    animation: aurora-drift 28s linear infinite;
+    pointer-events: none;
+    z-index: -1;
   }
 
   .text-display {
