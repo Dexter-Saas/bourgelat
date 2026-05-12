@@ -118,12 +118,10 @@
   .bg-chat-canvas {
     background-color: oklch(0.96 0.014 100);
     background-image:
-      var(--gradient-aurora),
       radial-gradient(oklch(0.42 0.07 155 / 0.05) 1px, transparent 1.4px),
       radial-gradient(oklch(0.55 0.10 145 / 0.03) 1px, transparent 1.4px);
-    background-size: auto, 22px 22px, 44px 44px;
-    background-position: 0 0, 0 0, 11px 11px;
-    background-attachment: fixed, scroll, scroll;
+    background-size: 22px 22px, 44px 44px;
+    background-position: 0 0, 11px 11px;
   }
 
   .text-display {
