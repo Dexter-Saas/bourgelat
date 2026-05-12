@@ -17,9 +17,9 @@ export function ChatBubble({
   if (msg.role === "user") {
     return (
       <div className="animate-fade-up flex justify-end">
-        <div className="max-w-[82%] rounded-2xl rounded-tr-md bg-[var(--surface-bubble-user)] px-3.5 py-2 text-[15px] leading-relaxed text-foreground shadow-[var(--shadow-bubble)]">
+        <div className="bubble-user max-w-[82%] rounded-2xl rounded-tr-md px-3.5 py-2 text-[15px] leading-relaxed text-foreground">
           {msg.videoName && (
-            <div className="mb-1.5 flex items-center gap-2 rounded-md bg-black/5 px-2 py-1.5 text-xs text-foreground/75">
+            <div className="mb-1.5 flex items-center gap-2 rounded-md bg-white/30 px-2 py-1.5 text-xs text-foreground/80 ring-1 ring-white/40">
               <Film className="h-3.5 w-3.5 text-primary" />
               <span className="truncate font-medium">{msg.videoName}</span>
             </div>
