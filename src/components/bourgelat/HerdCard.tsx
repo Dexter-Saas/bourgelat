@@ -4,7 +4,7 @@ import type { HerdResult } from "./types";
 
 export function HerdCard({ result }: { result: HerdResult }) {
   return (
-    <article className="glass-card animate-fade-up overflow-hidden rounded-2xl rounded-tl-sm shadow-[var(--shadow-bubble)]">
+    <article className="glass-card aurora-bg aurora-soft animate-fade-up overflow-hidden rounded-2xl rounded-tl-sm shadow-[var(--shadow-bubble)]">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 border-b border-border/60 bg-gradient-to-r from-primary/10 via-transparent to-transparent px-4 py-2.5">
         <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground text-display">
           <Users className="h-3.5 w-3.5" />
