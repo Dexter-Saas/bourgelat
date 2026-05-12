@@ -465,10 +465,10 @@ function BourgelatChat() {
       </header>
 
       {/* Mode selector */}
-      <div className="z-10 flex items-center justify-center border-b border-border/60 bg-background/80 px-4 py-2 backdrop-blur-md">
+      <div className="glass z-10 flex items-center justify-center px-4 py-2">
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface-elevated)] px-3 py-1.5 text-xs font-medium text-foreground ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-1.5 text-xs font-medium text-foreground ring-1 ring-border/70 backdrop-blur-md transition-all hover:bg-white hover:shadow-md hover:-translate-y-px disabled:opacity-50"
             disabled={analyzing}
           >
             {mode === "single" ? (
