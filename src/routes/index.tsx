@@ -446,11 +446,14 @@ function BourgelatChat() {
   return (
     <div className="flex h-[100dvh] flex-col bg-background text-foreground">
       {/* Header — deep forest green, WhatsApp-style */}
-      <header className="z-20 flex items-center justify-between bg-primary px-4 py-3 text-primary-foreground shadow-sm">
+      <header className="glass-header z-20 flex items-center justify-between px-4 py-3 text-primary-foreground">
         <div className="flex items-center gap-3">
-          <CowAvatar size={40} />
+          <div className="relative">
+            <span className="absolute -inset-1 rounded-full bg-[oklch(0.62_0.13_145)]/40 blur-md" />
+            <CowAvatar size={40} />
+          </div>
           <div className="leading-tight">
-            <h1 className="text-base font-semibold tracking-tight">
+            <h1 className="bg-gradient-to-r from-white to-[oklch(0.92_0.05_140)] bg-clip-text text-base font-semibold tracking-tight text-transparent">
               Bourgelat
             </h1>
             <p className="text-[11px] text-primary-foreground/75">
@@ -462,10 +465,10 @@ function BourgelatChat() {
       </header>
 
       {/* Mode selector */}
-      <div className="z-10 flex items-center justify-center border-b border-border/60 bg-background/80 px-4 py-2 backdrop-blur-md">
+      <div className="glass z-10 flex items-center justify-center px-4 py-2">
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface-elevated)] px-3 py-1.5 text-xs font-medium text-foreground ring-1 ring-border transition-colors hover:bg-accent disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-1.5 text-xs font-medium text-foreground ring-1 ring-border/70 backdrop-blur-md transition-all hover:bg-white hover:shadow-md hover:-translate-y-px disabled:opacity-50"
             disabled={analyzing}
           >
             {mode === "single" ? (
@@ -519,7 +522,7 @@ function BourgelatChat() {
       </main>
 
       {/* Input bar */}
-      <footer className="z-20 border-t border-border/60 bg-background/90 backdrop-blur-md">
+      <footer className="glass z-20">
         <div className="mx-auto max-w-2xl px-3 py-3">
           {video && (
             <div className="mb-2 flex items-center justify-between gap-2 rounded-lg bg-[var(--surface-elevated)] px-3 py-2 ring-1 ring-border">
@@ -539,7 +542,7 @@ function BourgelatChat() {
               </button>
             </div>
           )}
-          <div className="flex items-end gap-2 rounded-2xl bg-[var(--surface-elevated)] p-1.5 ring-1 ring-border focus-within:ring-primary/60 transition-all">
+          <div className="flex items-end gap-2 rounded-2xl bg-white/70 p-1.5 ring-1 ring-border/70 backdrop-blur-md focus-within:ring-primary/60 focus-within:shadow-[0_8px_24px_-8px_oklch(0.42_0.07_155/0.3)] transition-all">
             <button
               onClick={handleAttach}
               disabled={analyzing}
@@ -577,8 +580,7 @@ function BourgelatChat() {
               onClick={handleSend}
               disabled={analyzing || (!input.trim() && !video)}
               aria-label="Send"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
-              style={{ boxShadow: "var(--glow-primary)" }}
+              className="glow-pulse gradient-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-primary-foreground transition-all hover:brightness-110 hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:bg-muted disabled:bg-none disabled:text-muted-foreground disabled:animate-none disabled:shadow-none"
             >
               <Send className="h-4.5 w-4.5" strokeWidth={2.5} />
             </button>

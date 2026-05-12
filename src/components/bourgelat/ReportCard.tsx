@@ -156,9 +156,9 @@ export function ReportCard({ result }: { result: TriageResult }) {
         </div>
       )}
 
-      <article className="rounded-2xl rounded-tl-sm bg-[var(--surface-report)] ring-1 ring-border/70 shadow-[var(--shadow-bubble)] overflow-hidden">
+      <article className="glass-card rounded-2xl rounded-tl-sm shadow-[var(--shadow-bubble)] overflow-hidden">
         {/* Header strip */}
-        <div className="flex items-center justify-between border-b border-border/60 bg-black/20 px-4 py-2.5">
+        <div className="flex items-center justify-between border-b border-border/60 bg-gradient-to-r from-primary/10 via-transparent to-transparent px-4 py-2.5">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground text-display">
             <ClipboardList className="h-3.5 w-3.5" />
             Triage Report

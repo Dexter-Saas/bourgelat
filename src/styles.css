@@ -88,8 +88,13 @@
   --surface-bubble-bot: oklch(1 0 0);            /* white incoming */
   --surface-report: oklch(0.985 0.008 110);
 
-  --shadow-bubble: 0 1px 1px oklch(0 0 0 / 0.08), 0 1px 2px oklch(0 0 0 / 0.04);
-  --glow-primary: 0 4px 14px oklch(0.42 0.07 155 / 0.28);
+  --shadow-bubble: 0 1px 1px oklch(0 0 0 / 0.08), 0 4px 16px oklch(0.42 0.07 155 / 0.06);
+  --glow-primary: 0 4px 14px oklch(0.42 0.07 155 / 0.28), 0 0 0 1px oklch(0.42 0.07 155 / 0.08);
+  --gradient-primary: linear-gradient(135deg, oklch(0.48 0.09 155), oklch(0.62 0.13 145));
+  --gradient-glass: linear-gradient(140deg, oklch(1 0 0 / 0.85) 0%, oklch(0.97 0.012 130 / 0.65) 50%, oklch(0.93 0.03 145 / 0.55) 100%);
+  --gradient-aurora: radial-gradient(60% 80% at 20% 10%, oklch(0.62 0.13 145 / 0.18), transparent 60%),
+                     radial-gradient(50% 70% at 90% 0%, oklch(0.55 0.10 95 / 0.16), transparent 60%),
+                     radial-gradient(80% 60% at 50% 100%, oklch(0.42 0.07 155 / 0.14), transparent 60%);
 }
 
 @layer base {
@@ -110,20 +115,51 @@
 }
 
 @layer utilities {
-  /* Subtle WhatsApp-style chat backdrop — warm cream with a hint of green pattern */
   .bg-chat-canvas {
     background-color: oklch(0.96 0.014 100);
     background-image:
+      var(--gradient-aurora),
       radial-gradient(oklch(0.42 0.07 155 / 0.05) 1px, transparent 1.4px),
       radial-gradient(oklch(0.55 0.10 145 / 0.03) 1px, transparent 1.4px);
-    background-size: 22px 22px, 44px 44px;
-    background-position: 0 0, 11px 11px;
+    background-size: auto, 22px 22px, 44px 44px;
+    background-position: 0 0, 0 0, 11px 11px;
+    background-attachment: fixed, scroll, scroll;
   }
 
   .text-display {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
   }
+
+  /* Apple-inspired fluid glass surfaces */
+  .glass {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid oklch(1 0 0 / 0.5);
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.6),
+      0 8px 32px oklch(0.42 0.07 155 / 0.08);
+  }
+  .glass-card {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(18px) saturate(170%);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.55),
+      0 1px 1px oklch(0 0 0 / 0.04),
+      0 12px 30px -10px oklch(0.42 0.07 155 / 0.18);
+    border: 1px solid oklch(1 0 0 / 0.45);
+  }
+  .glass-header {
+    background: linear-gradient(180deg, oklch(0.42 0.07 155 / 0.92), oklch(0.36 0.06 155 / 0.88));
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    box-shadow:
+      inset 0 -1px 0 oklch(1 0 0 / 0.08),
+      0 4px 20px oklch(0.36 0.06 155 / 0.25);
+  }
+  .gradient-primary { background: var(--gradient-primary); }
 
   @keyframes pulse-dot {
     0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
@@ -138,8 +174,62 @@
   .status-pulse { animation: status-pulse 2s infinite; }
 
   @keyframes fade-up {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(8px) scale(0.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
-  .animate-fade-up { animation: fade-up 0.3s ease-out; }
+  .animate-fade-up { animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  @keyframes shimmer-sweep {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .shimmer-text {
+    background: linear-gradient(
+      90deg,
+      oklch(0.48 0.04 150 / 0.55) 0%,
+      oklch(0.48 0.04 150 / 0.55) 35%,
+      oklch(0.62 0.13 145) 50%,
+      oklch(0.48 0.04 150 / 0.55) 65%,
+      oklch(0.48 0.04 150 / 0.55) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer-sweep 2.4s linear infinite;
+  }
+
+  @keyframes aurora-drift {
+    0% { transform: rotate(0deg) scale(1.4); }
+    100% { transform: rotate(360deg) scale(1.4); }
+  }
+  .aurora-bg { position: relative; overflow: hidden; isolation: isolate; }
+  .aurora-bg::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background: conic-gradient(
+      from 0deg,
+      oklch(0.62 0.13 145 / 0.35),
+      oklch(0.55 0.10 95 / 0.25),
+      oklch(0.42 0.07 155 / 0.30),
+      oklch(0.72 0.12 130 / 0.25),
+      oklch(0.62 0.13 145 / 0.35)
+    );
+    animation: aurora-drift 9s linear infinite;
+    filter: blur(28px);
+    z-index: -1;
+  }
+
+  @keyframes liquid-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+  .liquid-orb { animation: liquid-breathe 2.6s ease-in-out infinite; }
+
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 4px 14px oklch(0.42 0.07 155 / 0.28), 0 0 0 0 oklch(0.62 0.13 145 / 0.4); }
+    50% { box-shadow: 0 6px 18px oklch(0.42 0.07 155 / 0.4), 0 0 0 6px oklch(0.62 0.13 145 / 0); }
+  }
+  .glow-pulse { animation: glow-pulse 2.4s ease-in-out infinite; }
 }
