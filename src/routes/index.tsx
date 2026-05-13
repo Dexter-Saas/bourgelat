@@ -545,16 +545,31 @@ function BourgelatChat() {
             <span>{mode === "single" ? "Single Animal" : "Herd Scan"}</span>
             <ChevronDown className="h-3 w-3 opacity-60" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="min-w-[180px]">
-            <DropdownMenuItem onClick={() => setMode("single")}>
-              <User className="h-4 w-4" />
+          <DropdownMenuContent
+            align="center"
+            className="aurora-bg aurora-soft min-w-[200px] overflow-hidden rounded-xl border-white/40 p-1 text-foreground shadow-xl backdrop-blur-xl"
+            style={{
+              background:
+                "linear-gradient(140deg, oklch(1 0 0 / 0.88) 0%, oklch(0.95 0.02 145 / 0.78) 100%)",
+              boxShadow:
+                "inset 0 1px 0 oklch(1 0 0 / 0.6), 0 18px 40px -14px oklch(0.42 0.07 155 / 0.35)",
+            }}
+          >
+            <DropdownMenuItem
+              onClick={() => setMode("single")}
+              className="rounded-lg focus:bg-white/60"
+            >
+              <User className="h-4 w-4 text-primary" />
               <div className="flex flex-col">
                 <span className="text-sm font-medium">Single Animal</span>
                 <span className="text-[11px] text-muted-foreground">One cow at a time</span>
               </div>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setMode("herd")}>
-              <Users className="h-4 w-4" />
+            <DropdownMenuItem
+              onClick={() => setMode("herd")}
+              className="rounded-lg focus:bg-white/60"
+            >
+              <Users className="h-4 w-4 text-primary" />
               <div className="flex flex-col">
                 <span className="text-sm font-medium">Herd Scan</span>
                 <span className="text-[11px] text-muted-foreground">Walkthrough assessment</span>
