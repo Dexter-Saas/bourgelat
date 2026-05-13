@@ -158,20 +158,24 @@ export function ReportCard({ result }: { result: TriageResult }) {
 
       <article className="glass-card aurora-bg aurora-soft rounded-2xl rounded-tl-sm shadow-[var(--shadow-bubble)] overflow-hidden">
         {/* Header strip */}
-        <div className="flex items-center justify-between border-b border-border/60 bg-gradient-to-r from-primary/10 via-transparent to-transparent px-4 py-2.5">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground text-display">
-            <ClipboardList className="h-3.5 w-3.5" />
-            Triage Report
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border/60 bg-gradient-to-r from-primary/10 via-transparent to-transparent px-4 py-2.5">
+          <div className="flex min-w-0 items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground text-display">
+            <ClipboardList className="h-3.5 w-3.5 shrink-0" />
+            <span className="shrink-0">Triage Report</span>
             {result.animal_id && (
-              <span className="ml-1 rounded bg-primary/10 px-1.5 py-0.5 text-primary">
+              <span className="ml-1 truncate rounded bg-primary/10 px-1.5 py-0.5 text-primary">
                 ID · {result.animal_id}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            {result.fever_likelihood && <FeverPill level={result.fever_likelihood} />}
+          <div className="flex flex-wrap items-center gap-2">
+            {result.fever_likelihood && (
+              <div className="shrink-0">
+                <FeverPill level={result.fever_likelihood} />
+              </div>
+            )}
             <span
-              className={`rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wider ring-1 text-display ${sev.bg} ${sev.text} ${sev.ring}`}
+              className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wider ring-1 text-display ${sev.bg} ${sev.text} ${sev.ring}`}
             >
               {result.severity}
             </span>

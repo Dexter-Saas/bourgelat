@@ -82,22 +82,57 @@ function mapApiToHerdResult(data: unknown): HerdResult {
   if (!data || typeof data !== "object") return result;
   const d = data as Record<string, unknown>;
   const analysis = (d.analysis && typeof d.analysis === "object" ? d.analysis : d) as Record<string, unknown>;
+  const triage = (d.triage && typeof d.triage === "object" ? d.triage : {}) as Record<string, unknown>;
 
-  const size = analysis.herd_size ?? analysis.estimated_herd_size ?? d.herd_size ?? d.estimated_herd_size;
+  const size =
+    analysis.herd_size_estimate ??
+    analysis.herd_size ??
+    analysis.estimated_herd_size ??
+    d.herd_size_estimate ??
+    d.herd_size;
   if (typeof size === "number") result.herd_size = size;
 
-  const avg = analysis.average_bcs ?? analysis.avg_bcs ?? analysis.bcs_score ?? d.average_bcs;
+  const avg =
+    analysis.herd_bcs_average ??
+    analysis.average_bcs ??
+    analysis.avg_bcs ??
+    analysis.bcs_score ??
+    d.herd_bcs_average ??
+    d.average_bcs;
   if (typeof avg === "number") result.average_bcs = avg;
 
   const summary =
-    analysis.health_summary ?? analysis.summary ?? analysis.observations ?? d.health_summary ?? d.summary;
+    analysis.herd_health_summary ??
+    analysis.health_summary ??
+    analysis.summary ??
+    analysis.observations ??
+    d.health_summary ??
+    d.summary;
   if (typeof summary === "string") result.health_summary = summary;
 
   result.fever_likelihood = normalizeFever(
     analysis.fever_likelihood ?? d.fever_likelihood,
   );
 
-  const flaggedRaw = analysis.flagged_animals ?? analysis.flagged ?? d.flagged_animals ?? d.flagged;
+  const cc = analysis.common_conditions ?? d.common_conditions;
+  if (Array.isArray(cc)) {
+    result.common_conditions = cc.filter((c): c is string => typeof c === "string");
+  }
+
+  const action =
+    analysis.recommended_action ??
+    triage.action ??
+    d.recommended_action;
+  if (typeof action === "string") result.recommended_action = action;
+
+  const conf = analysis.confidence ?? d.confidence;
+  if (typeof conf === "number") result.confidence = conf;
+
+  const disc = analysis.disclaimer ?? d.disclaimer;
+  if (typeof disc === "string") result.disclaimer = disc;
+
+  const flaggedRaw =
+    analysis.flagged_animals ?? analysis.flagged ?? d.flagged_animals ?? d.flagged;
   if (Array.isArray(flaggedRaw)) {
     for (const item of flaggedRaw) {
       if (typeof item === "string") {
@@ -109,19 +144,25 @@ function mapApiToHerdResult(data: unknown): HerdResult {
           (e.animal_id as string) ||
           (e.tag as string) ||
           undefined;
+        const concernSingular = typeof e.concern === "string" ? e.concern : undefined;
         const concernsVal = e.concerns ?? e.conditions ?? e.issues;
-        const concerns = Array.isArray(concernsVal)
-          ? concernsVal.filter((c): c is string => typeof c === "string")
-          : typeof concernsVal === "string"
-            ? [concernsVal]
-            : [];
+        let concerns: string[] = [];
+        if (Array.isArray(concernsVal)) {
+          concerns = concernsVal.filter((c): c is string => typeof c === "string");
+        } else if (typeof concernsVal === "string") {
+          concerns = [concernsVal];
+        }
+        if (concernSingular) concerns = [concernSingular, ...concerns];
         const severity =
           typeof e.severity === "string"
             ? e.severity
             : typeof e.level === "string"
               ? e.level
               : undefined;
-        result.flagged.push({ id, concerns, severity });
+        const frame_description =
+          typeof e.frame_description === "string" ? e.frame_description : undefined;
+        const fever = normalizeFever(e.fever_likelihood);
+        result.flagged.push({ id, concerns, severity, frame_description, fever_likelihood: fever });
       }
     }
   }
@@ -408,6 +449,13 @@ function BourgelatChat() {
       if (isHerd) {
         const herd = mapApiToHerdResult(data);
         setMessages((m) => [...m, { id: uid(), role: "bot-herd", result: herd }]);
+        const bcs =
+          typeof herd.average_bcs === "number" && herd.average_bcs > 0
+            ? herd.average_bcs
+            : null;
+        setLastBcs(bcs);
+        setMessages((m) => [...m, { id: uid(), role: "bot-feed-prompt" }]);
+        setFeedFlow("awaiting-choice");
       } else {
         const result = mapApiToTriageResult(data as TriageApiResponse, text || undefined);
         setMessages((m) => [...m, { id: uid(), role: "bot-report", result }]);
@@ -445,12 +493,24 @@ function BourgelatChat() {
 
   return (
     <div className="flex h-[100dvh] flex-col bg-background text-foreground">
-      {/* Header — deep forest green, WhatsApp-style */}
-      <header className="glass-header aurora-bg aurora-soft z-20 flex items-center justify-between px-4 py-3 text-primary-foreground">
+      {/* Header — fade gradient like ChatGPT/Claude */}
+      <header className="relative z-20 flex items-center justify-between px-4 py-3 text-primary-foreground">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[140%]"
+          style={{
+            background:
+              "linear-gradient(180deg, oklch(0.32 0.05 155 / 0.96) 0%, oklch(0.34 0.055 155 / 0.85) 55%, oklch(0.36 0.06 155 / 0) 100%)",
+            backdropFilter: "blur(18px) saturate(160%)",
+            WebkitBackdropFilter: "blur(18px) saturate(160%)",
+          }}
+        />
         <div className="flex items-center gap-3">
           <span className="relative inline-flex">
-            <span className="liquid-orb absolute -inset-1 rounded-full bg-gradient-to-br from-primary to-[oklch(0.62_0.13_145)] opacity-50 blur-md" />
-            <CowAvatar size={40} />
+            <span className="absolute inset-0 rounded-full bg-black/30 ring-1 ring-black/20" />
+            <span className="relative rounded-full" style={{ filter: "brightness(0.78) saturate(1.05)" }}>
+              <CowAvatar size={40} />
+            </span>
           </span>
           <div className="leading-tight">
             <h1 className="text-base font-semibold tracking-tight text-primary-foreground">
@@ -465,11 +525,17 @@ function BourgelatChat() {
       </header>
 
       {/* Mode selector */}
-      <div className="glass z-10 flex items-center justify-center px-4 py-2">
+      <div className="z-10 flex items-center justify-center px-4 py-2">
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-1.5 text-xs font-medium text-foreground ring-1 ring-border/70 backdrop-blur-md transition-all hover:bg-white hover:shadow-md hover:-translate-y-px disabled:opacity-50"
+            className="aurora-bg aurora-soft inline-flex items-center gap-1.5 overflow-hidden rounded-full px-3.5 py-1.5 text-xs font-medium text-foreground ring-1 ring-white/50 backdrop-blur-md transition-all hover:-translate-y-px hover:shadow-md disabled:opacity-50"
             disabled={analyzing}
+            style={{
+              background:
+                "linear-gradient(140deg, oklch(1 0 0 / 0.85) 0%, oklch(0.95 0.02 145 / 0.7) 100%)",
+              boxShadow:
+                "inset 0 1px 0 oklch(1 0 0 / 0.6), 0 6px 18px -8px oklch(0.42 0.07 155 / 0.25)",
+            }}
           >
             {mode === "single" ? (
               <User className="h-3.5 w-3.5 text-primary" />
