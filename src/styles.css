@@ -127,8 +127,8 @@
   }
   .bg-chat-canvas::before {
     content: "";
-    position: absolute;
-    inset: -10%;
+    position: fixed;
+    inset: 0;
     background:
       radial-gradient(40% 35% at 15% 20%, oklch(0.62 0.13 145 / 0.18), transparent 70%),
       radial-gradient(45% 40% at 85% 10%, oklch(0.55 0.10 95 / 0.14), transparent 70%),
