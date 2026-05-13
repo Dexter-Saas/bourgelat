@@ -82,22 +82,57 @@ function mapApiToHerdResult(data: unknown): HerdResult {
   if (!data || typeof data !== "object") return result;
   const d = data as Record<string, unknown>;
   const analysis = (d.analysis && typeof d.analysis === "object" ? d.analysis : d) as Record<string, unknown>;
+  const triage = (d.triage && typeof d.triage === "object" ? d.triage : {}) as Record<string, unknown>;
 
-  const size = analysis.herd_size ?? analysis.estimated_herd_size ?? d.herd_size ?? d.estimated_herd_size;
+  const size =
+    analysis.herd_size_estimate ??
+    analysis.herd_size ??
+    analysis.estimated_herd_size ??
+    d.herd_size_estimate ??
+    d.herd_size;
   if (typeof size === "number") result.herd_size = size;
 
-  const avg = analysis.average_bcs ?? analysis.avg_bcs ?? analysis.bcs_score ?? d.average_bcs;
+  const avg =
+    analysis.herd_bcs_average ??
+    analysis.average_bcs ??
+    analysis.avg_bcs ??
+    analysis.bcs_score ??
+    d.herd_bcs_average ??
+    d.average_bcs;
   if (typeof avg === "number") result.average_bcs = avg;
 
   const summary =
-    analysis.health_summary ?? analysis.summary ?? analysis.observations ?? d.health_summary ?? d.summary;
+    analysis.herd_health_summary ??
+    analysis.health_summary ??
+    analysis.summary ??
+    analysis.observations ??
+    d.health_summary ??
+    d.summary;
   if (typeof summary === "string") result.health_summary = summary;
 
   result.fever_likelihood = normalizeFever(
     analysis.fever_likelihood ?? d.fever_likelihood,
   );
 
-  const flaggedRaw = analysis.flagged_animals ?? analysis.flagged ?? d.flagged_animals ?? d.flagged;
+  const cc = analysis.common_conditions ?? d.common_conditions;
+  if (Array.isArray(cc)) {
+    result.common_conditions = cc.filter((c): c is string => typeof c === "string");
+  }
+
+  const action =
+    analysis.recommended_action ??
+    triage.action ??
+    d.recommended_action;
+  if (typeof action === "string") result.recommended_action = action;
+
+  const conf = analysis.confidence ?? d.confidence;
+  if (typeof conf === "number") result.confidence = conf;
+
+  const disc = analysis.disclaimer ?? d.disclaimer;
+  if (typeof disc === "string") result.disclaimer = disc;
+
+  const flaggedRaw =
+    analysis.flagged_animals ?? analysis.flagged ?? d.flagged_animals ?? d.flagged;
   if (Array.isArray(flaggedRaw)) {
     for (const item of flaggedRaw) {
       if (typeof item === "string") {
@@ -109,19 +144,25 @@ function mapApiToHerdResult(data: unknown): HerdResult {
           (e.animal_id as string) ||
           (e.tag as string) ||
           undefined;
+        const concernSingular = typeof e.concern === "string" ? e.concern : undefined;
         const concernsVal = e.concerns ?? e.conditions ?? e.issues;
-        const concerns = Array.isArray(concernsVal)
-          ? concernsVal.filter((c): c is string => typeof c === "string")
-          : typeof concernsVal === "string"
-            ? [concernsVal]
-            : [];
+        let concerns: string[] = [];
+        if (Array.isArray(concernsVal)) {
+          concerns = concernsVal.filter((c): c is string => typeof c === "string");
+        } else if (typeof concernsVal === "string") {
+          concerns = [concernsVal];
+        }
+        if (concernSingular) concerns = [concernSingular, ...concerns];
         const severity =
           typeof e.severity === "string"
             ? e.severity
             : typeof e.level === "string"
               ? e.level
               : undefined;
-        result.flagged.push({ id, concerns, severity });
+        const frame_description =
+          typeof e.frame_description === "string" ? e.frame_description : undefined;
+        const fever = normalizeFever(e.fever_likelihood);
+        result.flagged.push({ id, concerns, severity, frame_description, fever_likelihood: fever });
       }
     }
   }
