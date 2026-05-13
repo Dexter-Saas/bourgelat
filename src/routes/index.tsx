@@ -525,7 +525,7 @@ function BourgelatChat() {
       </header>
 
       {/* Mode selector */}
-      <div className="z-10 flex items-center justify-center px-4 py-2">
+      <div className="relative z-20 flex items-center justify-center px-4 py-2">
         <DropdownMenu>
           <DropdownMenuTrigger
             className="aurora-bg aurora-soft inline-flex items-center gap-1.5 overflow-hidden rounded-full px-3.5 py-1.5 text-xs font-medium text-foreground ring-1 ring-white/50 backdrop-blur-md transition-all hover:-translate-y-px hover:shadow-md disabled:opacity-50"
