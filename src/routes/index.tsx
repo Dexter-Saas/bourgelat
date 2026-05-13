@@ -486,12 +486,24 @@ function BourgelatChat() {
 
   return (
     <div className="flex h-[100dvh] flex-col bg-background text-foreground">
-      {/* Header — deep forest green, WhatsApp-style */}
-      <header className="glass-header aurora-bg aurora-soft z-20 flex items-center justify-between px-4 py-3 text-primary-foreground">
+      {/* Header — fade gradient like ChatGPT/Claude */}
+      <header className="relative z-20 flex items-center justify-between px-4 py-3 text-primary-foreground">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[140%]"
+          style={{
+            background:
+              "linear-gradient(180deg, oklch(0.32 0.05 155 / 0.96) 0%, oklch(0.34 0.055 155 / 0.85) 55%, oklch(0.36 0.06 155 / 0) 100%)",
+            backdropFilter: "blur(18px) saturate(160%)",
+            WebkitBackdropFilter: "blur(18px) saturate(160%)",
+          }}
+        />
         <div className="flex items-center gap-3">
           <span className="relative inline-flex">
-            <span className="liquid-orb absolute -inset-1 rounded-full bg-gradient-to-br from-primary to-[oklch(0.62_0.13_145)] opacity-50 blur-md" />
-            <CowAvatar size={40} />
+            <span className="absolute inset-0 rounded-full bg-black/30 ring-1 ring-black/20" />
+            <span className="relative rounded-full" style={{ filter: "brightness(0.78) saturate(1.05)" }}>
+              <CowAvatar size={40} />
+            </span>
           </span>
           <div className="leading-tight">
             <h1 className="text-base font-semibold tracking-tight text-primary-foreground">
@@ -506,11 +518,17 @@ function BourgelatChat() {
       </header>
 
       {/* Mode selector */}
-      <div className="glass z-10 flex items-center justify-center px-4 py-2">
+      <div className="z-10 flex items-center justify-center px-4 py-2">
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-1.5 text-xs font-medium text-foreground ring-1 ring-border/70 backdrop-blur-md transition-all hover:bg-white hover:shadow-md hover:-translate-y-px disabled:opacity-50"
+            className="aurora-bg aurora-soft inline-flex items-center gap-1.5 overflow-hidden rounded-full px-3.5 py-1.5 text-xs font-medium text-foreground ring-1 ring-white/50 backdrop-blur-md transition-all hover:-translate-y-px hover:shadow-md disabled:opacity-50"
             disabled={analyzing}
+            style={{
+              background:
+                "linear-gradient(140deg, oklch(1 0 0 / 0.85) 0%, oklch(0.95 0.02 145 / 0.7) 100%)",
+              boxShadow:
+                "inset 0 1px 0 oklch(1 0 0 / 0.6), 0 6px 18px -8px oklch(0.42 0.07 155 / 0.25)",
+            }}
           >
             {mode === "single" ? (
               <User className="h-3.5 w-3.5 text-primary" />
