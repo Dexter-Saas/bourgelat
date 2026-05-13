@@ -45,6 +45,8 @@ export interface FlaggedAnimal {
   id?: string;
   concerns: string[];
   severity?: string;
+  frame_description?: string;
+  fever_likelihood?: FeverLikelihood | null;
 }
 
 export interface HerdResult {
@@ -53,6 +55,10 @@ export interface HerdResult {
   health_summary: string;
   flagged: FlaggedAnimal[];
   fever_likelihood?: FeverLikelihood | null;
+  common_conditions?: string[];
+  recommended_action?: string;
+  confidence?: number | null;
+  disclaimer?: string;
   raw: unknown;
 }
 
