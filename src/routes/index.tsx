@@ -449,6 +449,13 @@ function BourgelatChat() {
       if (isHerd) {
         const herd = mapApiToHerdResult(data);
         setMessages((m) => [...m, { id: uid(), role: "bot-herd", result: herd }]);
+        const bcs =
+          typeof herd.average_bcs === "number" && herd.average_bcs > 0
+            ? herd.average_bcs
+            : null;
+        setLastBcs(bcs);
+        setMessages((m) => [...m, { id: uid(), role: "bot-feed-prompt" }]);
+        setFeedFlow("awaiting-choice");
       } else {
         const result = mapApiToTriageResult(data as TriageApiResponse, text || undefined);
         setMessages((m) => [...m, { id: uid(), role: "bot-report", result }]);
