@@ -500,9 +500,9 @@ function BourgelatChat() {
           className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[140%]"
           style={{
             background:
-              "linear-gradient(180deg, oklch(0.32 0.05 155 / 0.96) 0%, oklch(0.34 0.055 155 / 0.85) 55%, oklch(0.36 0.06 155 / 0) 100%)",
-            backdropFilter: "blur(18px) saturate(160%)",
-            WebkitBackdropFilter: "blur(18px) saturate(160%)",
+              "linear-gradient(180deg, oklch(0.5 0.045 155 / 0.55) 0%, oklch(0.55 0.04 155 / 0.32) 55%, oklch(0.6 0.04 155 / 0) 100%)",
+            backdropFilter: "blur(14px) saturate(140%)",
+            WebkitBackdropFilter: "blur(14px) saturate(140%)",
           }}
         />
         <div className="flex items-center gap-3">
