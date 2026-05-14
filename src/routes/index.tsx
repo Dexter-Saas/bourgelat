@@ -132,9 +132,8 @@ function mapApiToHerdResult(data: unknown): HerdResult {
   );
 
   const cc = analysis.common_conditions ?? d.common_conditions;
-  if (Array.isArray(cc)) {
-    result.common_conditions = cc.filter((c): c is string => typeof c === "string");
-  }
+  const ccClean = cleanStringList(cc);
+  if (ccClean.length) result.common_conditions = ccClean;
 
   const action =
     analysis.recommended_action ??
