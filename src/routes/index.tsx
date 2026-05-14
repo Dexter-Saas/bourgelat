@@ -164,11 +164,11 @@ function mapApiToHerdResult(data: unknown): HerdResult {
         const concernsVal = e.concerns ?? e.conditions ?? e.issues;
         let concerns: string[] = [];
         if (Array.isArray(concernsVal)) {
-          concerns = concernsVal.filter((c): c is string => typeof c === "string");
+          concerns = cleanStringList(concernsVal);
         } else if (typeof concernsVal === "string") {
-          concerns = [concernsVal];
+          concerns = cleanStringList([concernsVal]);
         }
-        if (concernSingular) concerns = [concernSingular, ...concerns];
+        if (concernSingular) concerns = cleanStringList([concernSingular, ...concerns]);
         const severity =
           typeof e.severity === "string"
             ? e.severity
