@@ -71,18 +71,14 @@ function mapApiToTriageResult(
     "No treatment guidance provided.";
 
   const fever = normalizeFever(analysis.fever_likelihood ?? data.fever_likelihood);
-  const feverSigns = Array.isArray(analysis.fever_signs)
-    ? analysis.fever_signs
-    : Array.isArray(data.fever_signs)
-      ? data.fever_signs
-      : [];
+  const feverSigns = cleanStringList(analysis.fever_signs ?? data.fever_signs);
 
   return {
     severity,
     body_condition_score:
       typeof analysis.bcs_score === "number" ? analysis.bcs_score : null,
     confidence: typeof analysis.confidence === "number" ? analysis.confidence : null,
-    conditions: Array.isArray(analysis.conditions) ? analysis.conditions : [],
+    conditions: cleanStringList(analysis.conditions),
     clinical_observations: observations,
     treatment_recommendation: treatment,
     animal_id: animalId,
