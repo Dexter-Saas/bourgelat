@@ -494,7 +494,7 @@ function BourgelatChat() {
   return (
     <div className="flex h-[100dvh] flex-col bg-background text-foreground">
       {/* Header — fade gradient like ChatGPT/Claude */}
-      <header className="relative z-20 flex items-center justify-between px-4 py-3 text-primary-foreground">
+      <header className="relative z-20 flex items-center justify-between px-4 py-3 text-foreground">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[140%]"
