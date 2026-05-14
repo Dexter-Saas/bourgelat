@@ -23,6 +23,27 @@ import type {
 
 type Mode = "single" | "herd";
 
+const PLACEHOLDER_VALUES = new Set([
+  "list",
+  "string",
+  "text",
+  "none",
+  "n/a",
+  "na",
+  "tbd",
+  "todo",
+  "list of signs",
+  "list of conditions",
+]);
+
+function cleanStringList(arr: unknown): string[] {
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .filter((s): s is string => typeof s === "string")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && !PLACEHOLDER_VALUES.has(s.toLowerCase()));
+}
+
 function mapApiToTriageResult(
   data: TriageApiResponse,
   animalId?: string,
