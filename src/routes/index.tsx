@@ -513,10 +513,10 @@ function BourgelatChat() {
             </span>
           </span>
           <div className="leading-tight">
-            <h1 className="text-base font-semibold tracking-tight text-primary-foreground">
+            <h1 className="text-base font-semibold tracking-tight text-foreground">
               Bourgelat
             </h1>
-            <p className="text-[11px] text-primary-foreground/75">
+            <p className="text-[11px] text-muted-foreground">
               AI Veterinary Intelligence
             </p>
           </div>
