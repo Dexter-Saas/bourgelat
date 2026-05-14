@@ -175,8 +175,9 @@ function mapApiToHerdResult(data: unknown): HerdResult {
             : typeof e.level === "string"
               ? e.level
               : undefined;
+        const frameRaw = typeof e.frame_description === "string" ? e.frame_description.trim() : "";
         const frame_description =
-          typeof e.frame_description === "string" ? e.frame_description : undefined;
+          frameRaw && !PLACEHOLDER_VALUES.has(frameRaw.toLowerCase()) ? frameRaw : undefined;
         const fever = normalizeFever(e.fever_likelihood);
         result.flagged.push({ id, concerns, severity, frame_description, fever_likelihood: fever });
       }
