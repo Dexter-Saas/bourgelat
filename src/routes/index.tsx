@@ -23,6 +23,27 @@ import type {
 
 type Mode = "single" | "herd";
 
+const PLACEHOLDER_VALUES = new Set([
+  "list",
+  "string",
+  "text",
+  "none",
+  "n/a",
+  "na",
+  "tbd",
+  "todo",
+  "list of signs",
+  "list of conditions",
+]);
+
+function cleanStringList(arr: unknown): string[] {
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .filter((s): s is string => typeof s === "string")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && !PLACEHOLDER_VALUES.has(s.toLowerCase()));
+}
+
 function mapApiToTriageResult(
   data: TriageApiResponse,
   animalId?: string,
@@ -50,18 +71,14 @@ function mapApiToTriageResult(
     "No treatment guidance provided.";
 
   const fever = normalizeFever(analysis.fever_likelihood ?? data.fever_likelihood);
-  const feverSigns = Array.isArray(analysis.fever_signs)
-    ? analysis.fever_signs
-    : Array.isArray(data.fever_signs)
-      ? data.fever_signs
-      : [];
+  const feverSigns = cleanStringList(analysis.fever_signs ?? data.fever_signs);
 
   return {
     severity,
     body_condition_score:
       typeof analysis.bcs_score === "number" ? analysis.bcs_score : null,
     confidence: typeof analysis.confidence === "number" ? analysis.confidence : null,
-    conditions: Array.isArray(analysis.conditions) ? analysis.conditions : [],
+    conditions: cleanStringList(analysis.conditions),
     clinical_observations: observations,
     treatment_recommendation: treatment,
     animal_id: animalId,
@@ -115,9 +132,8 @@ function mapApiToHerdResult(data: unknown): HerdResult {
   );
 
   const cc = analysis.common_conditions ?? d.common_conditions;
-  if (Array.isArray(cc)) {
-    result.common_conditions = cc.filter((c): c is string => typeof c === "string");
-  }
+  const ccClean = cleanStringList(cc);
+  if (ccClean.length) result.common_conditions = ccClean;
 
   const action =
     analysis.recommended_action ??
@@ -148,19 +164,20 @@ function mapApiToHerdResult(data: unknown): HerdResult {
         const concernsVal = e.concerns ?? e.conditions ?? e.issues;
         let concerns: string[] = [];
         if (Array.isArray(concernsVal)) {
-          concerns = concernsVal.filter((c): c is string => typeof c === "string");
+          concerns = cleanStringList(concernsVal);
         } else if (typeof concernsVal === "string") {
-          concerns = [concernsVal];
+          concerns = cleanStringList([concernsVal]);
         }
-        if (concernSingular) concerns = [concernSingular, ...concerns];
+        if (concernSingular) concerns = cleanStringList([concernSingular, ...concerns]);
         const severity =
           typeof e.severity === "string"
             ? e.severity
             : typeof e.level === "string"
               ? e.level
               : undefined;
+        const frameRaw = typeof e.frame_description === "string" ? e.frame_description.trim() : "";
         const frame_description =
-          typeof e.frame_description === "string" ? e.frame_description : undefined;
+          frameRaw && !PLACEHOLDER_VALUES.has(frameRaw.toLowerCase()) ? frameRaw : undefined;
         const fever = normalizeFever(e.fever_likelihood);
         result.flagged.push({ id, concerns, severity, frame_description, fever_likelihood: fever });
       }
@@ -494,15 +511,15 @@ function BourgelatChat() {
   return (
     <div className="flex h-[100dvh] flex-col bg-background text-foreground">
       {/* Header — fade gradient like ChatGPT/Claude */}
-      <header className="relative z-20 flex items-center justify-between px-4 py-3 text-primary-foreground">
+      <header className="relative z-20 flex items-center justify-between px-4 py-3 text-foreground">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[140%]"
           style={{
             background:
-              "linear-gradient(180deg, oklch(0.32 0.05 155 / 0.96) 0%, oklch(0.34 0.055 155 / 0.85) 55%, oklch(0.36 0.06 155 / 0) 100%)",
-            backdropFilter: "blur(18px) saturate(160%)",
-            WebkitBackdropFilter: "blur(18px) saturate(160%)",
+              "linear-gradient(180deg, oklch(0.5 0.045 155 / 0.55) 0%, oklch(0.55 0.04 155 / 0.32) 55%, oklch(0.6 0.04 155 / 0) 100%)",
+            backdropFilter: "blur(14px) saturate(140%)",
+            WebkitBackdropFilter: "blur(14px) saturate(140%)",
           }}
         />
         <div className="flex items-center gap-3">
@@ -513,10 +530,10 @@ function BourgelatChat() {
             </span>
           </span>
           <div className="leading-tight">
-            <h1 className="text-base font-semibold tracking-tight text-primary-foreground">
+            <h1 className="text-base font-semibold tracking-tight text-foreground">
               Bourgelat
             </h1>
-            <p className="text-[11px] text-primary-foreground/75">
+            <p className="text-[11px] text-muted-foreground">
               AI Veterinary Intelligence
             </p>
           </div>
