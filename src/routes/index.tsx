@@ -271,7 +271,7 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-const API_BASE = "https://6b817726d50c4cd1-102-91-5-112.serveousercontent.com";
+const API_BASE = "https://viewer-scene-ferry-folder.trycloudflare.com";
 const uid = () => Math.random().toString(36).slice(2, 11);
 
 function BourgelatChat() {
