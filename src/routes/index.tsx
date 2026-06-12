@@ -271,7 +271,7 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-const API_BASE = "https://viewer-scene-ferry-folder.trycloudflare.com";
+const API_BASE = "https://nokia-attached-lay-ascii.trycloudflare.com";
 const uid = () => Math.random().toString(36).slice(2, 11);
 
 function BourgelatChat() {
