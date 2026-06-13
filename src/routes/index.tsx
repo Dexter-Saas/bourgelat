@@ -271,7 +271,7 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-const API_BASE = "https://85707fdfebf01d.lhr.life";
+const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const uid = () => Math.random().toString(36).slice(2, 11);
 
 function BourgelatChat() {
