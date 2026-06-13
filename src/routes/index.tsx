@@ -271,7 +271,7 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-const API_BASE = "https://nokia-attached-lay-ascii.trycloudflare.com";
+const API_BASE = "https://85707fdfebf01d.lhr.life";
 const uid = () => Math.random().toString(36).slice(2, 11);
 
 function BourgelatChat() {
