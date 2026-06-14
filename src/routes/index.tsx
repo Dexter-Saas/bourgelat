@@ -20,6 +20,7 @@ import type {
   TriageApiResponse,
   TriageResult,
 } from "@/components/bourgelat/types";
+import { API_BASE_URL } from "@/config";
 
 type Mode = "single" | "herd";
 
@@ -271,7 +272,7 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 const uid = () => Math.random().toString(36).slice(2, 11);
 
 function BourgelatChat() {
@@ -302,7 +303,7 @@ function BourgelatChat() {
       try {
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), 4000);
-        const res = await fetch(`${API_BASE}/`, { signal: ctrl.signal });
+        const res = await fetch(`${API_BASE_URL}/`, { signal: ctrl.signal });
         clearTimeout(timer);
         if (!cancelled) setStatus(res.ok ? "online" : "offline");
       } catch {
@@ -351,7 +352,7 @@ function BourgelatChat() {
         breed: "default",
         lactation_stage: "default",
       };
-      const res = await fetch(`${API_BASE}/feed`, {
+      const res = await fetch(`${API_BASE_URL}/feed`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -459,7 +460,7 @@ function BourgelatChat() {
       const fd = new FormData();
       fd.append("video", sentVideo);
       fd.append("animal_id", isHerd ? "herd" : (text || "unknown"));
-      const res = await fetch(`${API_BASE}/analyze`, { method: "POST", body: fd });
+      const res = await fetch(`${API_BASE_URL}/analyze`, { method: "POST", body: fd });
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const data = await res.json();
 
@@ -492,7 +493,7 @@ function BourgelatChat() {
           role: "bot",
           text:
             "I couldn't reach the analysis service. Check that the Bourgelat backend is running at " +
-            API_BASE +
+            API_BASE_URL +
             ` and try again.\n\n${(err as Error).message}`,
         },
       ]);
