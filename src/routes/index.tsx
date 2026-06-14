@@ -20,7 +20,7 @@ import type {
   TriageApiResponse,
   TriageResult,
 } from "@/components/bourgelat/types";
-import { API_BASE_URL_URL } from "@/config";
+import { API_BASE_URL } from "@/config";
 
 type Mode = "single" | "herd";
 
